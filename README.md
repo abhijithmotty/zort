@@ -4,13 +4,9 @@
 
 <p align="center">
 
-&nbsp; <img src="https://img.shields.io/badge/version-2.0-blue.svg" alt="Version">
+&nbsp; <img src="https://img.shields.io/badge/version-2.0-blue.svg" alt="Version">&nbsp;<img src="https://img.shields.io/badge/python-3.7+-brightgreen.svg" alt="Python">&nbsp; <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">&nbsp; <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg" alt="Platform">
 
-&nbsp; <img src="https://img.shields.io/badge/python-3.7+-brightgreen.svg" alt="Python">
 
-&nbsp; <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-
-&nbsp; <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg" alt="Platform">
 
 </p>
 
@@ -114,7 +110,7 @@
 
 \# Clone the repository
 
-git clone https://github.com/yourusername/zort.git
+git clone https://github.com/abhijithmotty/zort.git
 
 cd zort
 
@@ -140,34 +136,6 @@ chmod +x zort.py
 
 
 
-\### Bash Version (Legacy)
-
-
-
-```bash
-
-\# Prerequisites
-
-sudo apt install curl              # or httpx
-
-sudo apt install parallel          # or xargs
-
-
-
-\# Make executable
-
-chmod +x zort.sh
-
-
-
-\# Run
-
-./zort.sh urls.txt
-
-```
-
-
-
 \### Requirements
 
 
@@ -180,19 +148,13 @@ chmod +x zort.sh
 
 
 
-\*\*Bash version:\*\*
-
-\- `curl` or `httpx` (for URL checking)
-
-\- `parallel` or `xargs` (for concurrency)
-
 
 
 \## 🚀 Quick Start
 
 
 
-\### Python (Recommended)
+\### Python
 
 
 
@@ -229,24 +191,6 @@ chmod +x zort.sh
 ```
 
 
-
-\### Bash (Legacy)
-
-
-
-```bash
-
-\# Basic usage
-
-./zort.sh urls.txt
-
-
-
-\# With options
-
-./zort.sh urls.txt -w keywords.txt -t 50 -T 5
-
-```
 
 
 
@@ -330,31 +274,6 @@ EXAMPLES:
 
 ```
 
-
-
-\### Bash Version
-
-
-
-```
-
-./zort.sh <url\_file> \[options]
-
-
-
-OPTIONS:
-
-&nbsp; -w, --wordlist    Optional external wordlist file
-
-&nbsp; -t, --threads     Number of concurrent checks (default: 20)
-
-&nbsp; -T, --timeout     Timeout per URL in seconds (default: 10)
-
-&nbsp; -s, --skip-check  Skip HTTP checks (static analysis only)
-
-&nbsp; -h, --help        Show help message
-
-```
 
 
 
@@ -598,22 +517,6 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 
 
-\*\*Bash:\*\*
-
-```bash
-
-\# Maximum speed
-
-./zort.sh urls.txt -t 100 -T 3
-
-
-
-\# Conservative
-
-./zort.sh urls.txt -t 10 -T 15
-
-```
-
 
 
 \## 🎨 Sample Output
@@ -677,44 +580,6 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 &nbsp; 5. Review potential\_vulnerabilities/ by attack type
 
 ```
-
-
-
-\## 🔄 Migration from Bash to Python
-
-
-
-If you're using the bash version, migrating is easy:
-
-
-
-```bash
-
-\# Old (Bash)
-
-./zort.sh urls.txt -t 50 -T 10 -w keywords.txt
-
-
-
-\# New (Python) - Same syntax!
-
-./zort.py urls.txt -t 50 -T 10 -w keywords.txt
-
-```
-
-
-
-\*\*Benefits of migrating:\*\*
-
-\- ✅ 10x faster with async
-
-\- ✅ More stable (no export/fork issues)
-
-\- ✅ Better error messages
-
-\- ✅ Cross-platform support
-
-\- ✅ Same command-line interface
 
 
 
@@ -792,7 +657,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ```bash
 
-git clone https://github.com/yourusername/zort.git
+git clone https://github.com/abhijithmotty/zort.git
 
 cd zort
 
@@ -804,17 +669,6 @@ python -m pytest tests/  # Run tests (if available)
 
 
 
-\*\*Bash:\*\*
-
-```bash
-
-git clone https://github.com/yourusername/zort.git
-
-cd zort
-
-./zort.sh --help
-
-```
 
 
 
@@ -835,20 +689,6 @@ class Config:
 &nbsp;   TOKEN\_PATTERNS = \[...]     # Add regex patterns
 
 &nbsp;   VULN\_PATTERNS = {...}      # Add vulnerability patterns
-
-```
-
-
-
-\*\*Bash (`zort.sh`):\*\*
-
-Edit the arrays in the script:
-
-```bash
-
-BUILTIN\_KEYWORDS=(...)  # Add keywords
-
-TOKEN\_PATTERNS=(...)     # Add patterns
 
 ```
 
@@ -918,9 +758,9 @@ This tool is for educational and ethical testing purposes only. Always obtain pr
 
 
 
-\- GitHub Issues: \[Report bugs or request features](https://github.com/yourusername/zort/issues)
+\- GitHub Issues: \[Report bugs or request features](https://github.com/abhijithmotty/zort/issues)
 
-\- Twitter: \[@yourhandle](https://twitter.com/yourhandle)
+\- Twitter: \[@yourhandle](https://x.com/primeaetheron)
 
 
 
