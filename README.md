@@ -4,7 +4,7 @@
 
 <p align="center">
 
-&nbsp; <img src="https://img.shields.io/badge/version-2.0-blue.svg" alt="Version">&nbsp;<img src="https://img.shields.io/badge/python-3.7+-brightgreen.svg" alt="Python">&nbsp; <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">&nbsp; <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg" alt="Platform">
+&nbsp; <img src="https://img.shields.io/badge/version-2.0-blue.svg" alt="Version">&nbsp; <img src="https://img.shields.io/badge/python-3.7+-brightgreen.svg" alt="Python">&nbsp; <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">&nbsp; <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg" alt="Platform">
 
 
 
