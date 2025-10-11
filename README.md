@@ -141,11 +141,13 @@ pip install -r requirements.txt
 
 chmod +x zort.py
 
+# copy to /usr/local/bin (requires sudo)
 
+sudo cp zort.py /usr/local/bin/zort
 
 # Run
 
-./zort.py urls.txt
+zort urls.txt
 
 ```
 
