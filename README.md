@@ -12,11 +12,11 @@
 
 
 
-\*\*ZORT\*\* is a powerful URL analysis and vulnerability detection tool designed for bug bounty hunters and penetration testers. It intelligently analyzes URLs from tools like `waybackurls`, identifying critical security patterns, sensitive endpoints, and potential vulnerabilities.
+**ZORT** is a powerful URL analysis and vulnerability detection tool designed for bug bounty hunters and penetration testers. It intelligently analyzes URLs from tools like `waybackurls`, identifying critical security patterns, sensitive endpoints, and potential vulnerabilities.
 
 
 
-> 🚀 \*\*NEW in v2.0\*\*: Complete Python rewrite with async support for 10x faster performance!
+> 🚀 **NEW in v2.0**: Complete Python rewrite with async support for 10x faster performance!
 
 
 
@@ -24,17 +24,17 @@
 
 
 
-- ✨ \*\*Python rewrite\*\* - More stable, faster, and easier to maintain
+- ✨ **Python rewrite** - More stable, faster, and easier to maintain
 
-- ⚡ \*\*Async HTTP requests\*\* - 10x faster URL checking with `aiohttp`
+- ⚡ **Async HTTP requests** - 10x faster URL checking with `aiohttp`
 
-- 🔧 \*\*Better error handling\*\* - No more cryptic bash errors
+- 🔧 **Better error handling** - No more cryptic bash errors
 
-- 🖥️ \*\*Cross-platform\*\* - Now works on Windows, Linux, and macOS
+- 🖥️ **Cross-platform** - Now works on Windows, Linux, and macOS
 
-- 📊 \*\*Real-time progress\*\* - Clean progress display without buffering issues
+- 📊 **Real-time progress** - Clean progress display without buffering issues
 
-- 🎯 \*\*Same features\*\* - All the power of v1 with none of the bugs
+- 🎯 **Same features** - All the power of v1 with none of the bugs
 
 
 
@@ -44,56 +44,56 @@
 
 ### 🔍 Smart Pattern Detection
 
-- \*\*Token \& Secret Detection\*\*: API keys, JWT tokens, session IDs, OAuth tokens, AWS credentials
+- **Token \& Secret Detection**: API keys, JWT tokens, session IDs, OAuth tokens, AWS credentials
 
-- \*\*Parameter Analysis\*\*: Identifies URLs with query parameters (injection points)
+- **Parameter Analysis**: Identifies URLs with query parameters (injection points)
 
-- \*\*API Endpoint Discovery\*\*: REST APIs, GraphQL, versioned endpoints
+- **API Endpoint Discovery**: REST APIs, GraphQL, versioned endpoints
 
-- \*\*Sensitive File Detection\*\*: Backups, configs, database dumps, source code
+- **Sensitive File Detection**: Backups, configs, database dumps, source code
 
 
 
 ### 🎯 Vulnerability Pattern Matching
 
-- \*\*SQL Injection\*\*: Detects potential SQLi parameters
+- **SQL Injection**: Detects potential SQLi parameters
 
-- \*\*Cross-Site Scripting (XSS)\*\*: Identifies XSS-prone parameters
+- **Cross-Site Scripting (XSS)**: Identifies XSS-prone parameters
 
-- \*\*Local/Remote File Inclusion\*\*: LFI/RFI vulnerable patterns
+- **Local/Remote File Inclusion**: LFI/RFI vulnerable patterns
 
-- \*\*Server-Side Request Forgery (SSRF)\*\*: SSRF attack vectors
+- **Server-Side Request Forgery (SSRF)**: SSRF attack vectors
 
-- \*\*Insecure Direct Object Reference (IDOR)\*\*: IDOR vulnerable endpoints
+- **Insecure Direct Object Reference (IDOR)**: IDOR vulnerable endpoints
 
-- \*\*Open Redirect\*\*: Open redirect vulnerabilities
+- **Open Redirect**: Open redirect vulnerabilities
 
 
 
 ### 🚀 HTTP Status Intelligence
 
-- \*\*200\*\*: Alive and accessible URLs
+- **200**: Alive and accessible URLs
 
-- \*\*401\*\*: Unauthorized (auth bypass opportunities)
+- **401**: Unauthorized (auth bypass opportunities)
 
-- \*\*403\*\*: Forbidden (potential bypasses)
+- **403**: Forbidden (potential bypasses)
 
-- \*\*405\*\*: Method not allowed (alternative HTTP methods)
+- **405**: Method not allowed (alternative HTTP methods)
 
-- \*\*429\*\*: Rate limiting detected
+- **429**: Rate limiting detected
 
-- \*\*500+\*\*: Server errors (exploitation opportunities)
+- **500+**: Server errors (exploitation opportunities)
 
 
 ### ⚡ Performance
 
-- \*\*Concurrent Processing\*\*: Async multi-threaded URL checking
+- **Concurrent Processing**: Async multi-threaded URL checking
 
-- \*\*Fast Mode\*\*: Static analysis without HTTP requests
+- **Fast Mode**: Static analysis without HTTP requests
 
-- \*\*Progress Tracking\*\*: Real-time progress updates
+- **Progress Tracking**: Real-time progress updates
 
-- \*\*Smart Deduplication\*\*: Automatic URL normalization
+- **Smart Deduplication**: Automatic URL normalization
 
 
 
@@ -157,7 +157,7 @@ zort urls.txt
 
 
 
-\*\*Python version:\*\*
+**Python version:**
 
 - Python 3.7 or higher
 
@@ -356,7 +356,7 @@ results/
 
 
 
-1\. \*\*🔑 tokens\_secrets.txt\*\* - Quick Wins
+1\. **🔑 tokens\_secrets.txt** - Quick Wins
 
 &nbsp;  - Look for exposed API keys, tokens, credentials
 
@@ -364,7 +364,7 @@ results/
 
 
 
-2\. \*\*⚠️ interesting\_codes.txt\*\* - Access Control
+2\. **⚠️ interesting\_codes.txt** - Access Control
 
 &nbsp;  - 403 Forbidden: Try path traversal, method bypass
 
@@ -374,7 +374,7 @@ results/
 
 
 
-3\. \*\*💉 potential\_vulnerabilities/\*\* - Injection Testing
+3\. **💉 potential\_vulnerabilities/** - Injection Testing
 
 &nbsp;  - Start with `sqli.txt` for SQL injection
 
@@ -384,7 +384,7 @@ results/
 
 
 
-4\. \*\*📊 api\_endpoints.txt\*\* - API Testing
+4\. **📊 api\_endpoints.txt** - API Testing
 
 &nbsp;  - Test for broken authentication
 
@@ -394,7 +394,7 @@ results/
 
 
 
-5\. \*\*🔍 parameters.txt\*\* - General Testing
+5\. **🔍 parameters.txt** - General Testing
 
 &nbsp;  - Test all injection types
 
@@ -408,15 +408,15 @@ results/
 
 
 
-- \*\*Start Fast\*\*: Use `--skip-check` for initial pattern analysis on large datasets
+- **Start Fast**: Use `--skip-check` for initial pattern analysis on large datasets
 
-- \*\*Focus on High-Value Targets\*\*: Prioritize tokens\_secrets.txt and interesting\_codes.txt
+- **Focus on High-Value Targets**: Prioritize tokens\_secrets.txt and interesting\_codes.txt
 
-- \*\*Combine Results\*\*: Cross-reference multiple output files for better context
+- **Combine Results**: Cross-reference multiple output files for better context
 
-- \*\*Custom Wordlists\*\*: Create domain-specific wordlists for better coverage
+- **Custom Wordlists**: Create domain-specific wordlists for better coverage
 
-- \*\*Automate Follow-up\*\*: Pipe results to other tools like nuclei, sqlmap, etc.
+- **Automate Follow-up**: Pipe results to other tools like nuclei, sqlmap, etc.
 
 
 
@@ -510,7 +510,7 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 
 
-\*\*Python:\*\*
+**Python:**
 
 ```bash
 
@@ -626,17 +626,17 @@ zort urls.txt --skip-check
 
 ### Vulnerability Parameters
 
-- \*\*SQLi\*\*: `id`, `user`, `username`, `email`, `search`, `q`, `query`
+- **SQLi**: `id`, `user`, `username`, `email`, `search`, `q`, `query`
 
-- \*\*XSS\*\*: `search`, `q`, `query`, `name`, `comment`, `message`
+- **XSS**: `search`, `q`, `query`, `name`, `comment`, `message`
 
-- \*\*LFI\*\*: `file`, `path`, `page`, `include`, `dir`, `template`
+- **LFI**: `file`, `path`, `page`, `include`, `dir`, `template`
 
-- \*\*RFI\*\*: `url`, `uri`, `link`, `src`, `source`, `redirect`
+- **RFI**: `url`, `uri`, `link`, `src`, `source`, `redirect`
 
-- \*\*SSRF\*\*: `url`, `uri`, `host`, `proxy`, `api`, `callback`, `webhook`
+- **SSRF**: `url`, `uri`, `host`, `proxy`, `api`, `callback`, `webhook`
 
-- \*\*IDOR\*\*: `id`, `uid`, `user\_id`, `account`, `order`, `invoice`
+- **IDOR**: `id`, `uid`, `user\_id`, `account`, `order`, `invoice`
 
 
 
@@ -670,7 +670,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 
 
-\*\*Python:\*\*
+**Python:**
 
 ```bash
 
@@ -693,7 +693,7 @@ python -m pytest tests/  # Run tests (if available)
 
 
 
-\*\*Python (`zort.py`):\*\*
+**Python (`zort.py`):**
 
 Edit the `Config` class to add patterns:
 
@@ -793,7 +793,7 @@ If you find ZORT useful, please consider giving it a star! ⭐
 
 
 
-\*\*Happy Hunting! 🎯\*\*
+**Happy Hunting! 🎯**
 
 
 
