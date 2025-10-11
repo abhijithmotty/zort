@@ -179,31 +179,31 @@ zort urls.txt
 
 # Basic usage
 
-./zort.py urls.txt
+zort urls.txt
 
 
 
 # With custom threads and timeout
 
-./zort.py urls.txt -t 100 -T 5
+zort urls.txt -t 100 -T 5
 
 
 
 # Fast mode (no HTTP checks)
 
-./zort.py urls.txt --skip-check
+zort urls.txt --skip-check
 
 
 
 # With external wordlist
 
-./zort.py urls.txt -w custom\_keywords.txt
+zort urls.txt -w custom\_keywords.txt
 
 
 
 # Custom output directory
 
-./zort.py urls.txt -o my\_results
+zort urls.txt -o my\_results
 
 ```
 
@@ -225,7 +225,7 @@ echo "target.com" | waybackurls > urls.txt
 
 # 2. Run ZORT analysis
 
-./zort.py urls.txt -t 100
+zort urls.txt -t 100
 
 
 
@@ -251,7 +251,7 @@ echo "target.com" | waybackurls > urls.txt
 
 ```
 
-./zort.py <url\_file> \[options]
+zort <url\_file> \[options]
 
 
 
@@ -281,13 +281,13 @@ OPTIONS:
 
 EXAMPLES:
 
- ./zort.py urls.txt
+ zort urls.txt
 
- ./zort.py urls.txt -w keywords.txt -t 100 -T 5
+ zort urls.txt -w keywords.txt -t 100 -T 5
 
- ./zort.py urls.txt --skip-check
+ zort urls.txt --skip-check
 
- ./zort.py urls.txt -o custom\_output
+ zort urls.txt -o custom\_output
 
 ```
 
@@ -450,7 +450,7 @@ EOF
 
 # Run with custom wordlist (Python)
 
-./zort.py urls.txt -w custom\_keywords.txt
+zort urls.txt -w custom\_keywords.txt
 
 
 
@@ -472,7 +472,7 @@ EOF
 
 echo "target.com" | waybackurls | tee urls.txt
 
-./zort.py urls.txt -t 100
+zort urls.txt -t 100
 
 nuclei -l results/alive\_200.txt -t ~/nuclei-templates/
 
@@ -480,7 +480,7 @@ nuclei -l results/alive\_200.txt -t ~/nuclei-templates/
 
 # ZORT → SQLMap
 
-./zort.py urls.txt
+zort urls.txt
 
 cat results/potential\_vulnerabilities/sqli.txt | while read url; do
 
@@ -498,7 +498,7 @@ cat results/parameters.txt | ffuf -w wordlist.txt -u FUZZ
 
 # ZORT → httpx for detailed analysis
 
-./zort.py urls.txt --skip-check  # Fast pattern analysis
+zort urls.txt --skip-check  # Fast pattern analysis
 
 cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
@@ -516,19 +516,19 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 # Maximum speed (use with caution)
 
-./zort.py urls.txt -t 200 -T 3
+zort urls.txt -t 200 -T 3
 
 
 
 # Conservative (avoid rate limiting)
 
-./zort.py urls.txt -t 25 -T 15
+zort urls.txt -t 25 -T 15
 
 
 
 # Static analysis only (fastest)
 
-./zort.py urls.txt --skip-check
+zort urls.txt --skip-check
 
 ```
 
