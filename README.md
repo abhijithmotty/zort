@@ -1,4 +1,4 @@
-\# 🎯 ZORT - Advanced URL Analysis Tool
+# 🎯 ZORT - Advanced URL Analysis Tool
 
 
 
@@ -20,115 +20,130 @@
 
 
 
-\## 🆕 What's New in v2.0
+## 🆕 What's New in v2.0
 
 
 
-\- ✨ \*\*Python rewrite\*\* - More stable, faster, and easier to maintain
+- ✨ \*\*Python rewrite\*\* - More stable, faster, and easier to maintain
 
-\- ⚡ \*\*Async HTTP requests\*\* - 10x faster URL checking with `aiohttp`
+- ⚡ \*\*Async HTTP requests\*\* - 10x faster URL checking with `aiohttp`
 
-\- 🔧 \*\*Better error handling\*\* - No more cryptic bash errors
+- 🔧 \*\*Better error handling\*\* - No more cryptic bash errors
 
-\- 🖥️ \*\*Cross-platform\*\* - Now works on Windows, Linux, and macOS
+- 🖥️ \*\*Cross-platform\*\* - Now works on Windows, Linux, and macOS
 
-\- 📊 \*\*Real-time progress\*\* - Clean progress display without buffering issues
+- 📊 \*\*Real-time progress\*\* - Clean progress display without buffering issues
 
-\- 🎯 \*\*Same features\*\* - All the power of v1 with none of the bugs
-
-
-
-\## ✨ Features
+- 🎯 \*\*Same features\*\* - All the power of v1 with none of the bugs
 
 
 
-\### 🔍 Smart Pattern Detection
-
-\- \*\*Token \& Secret Detection\*\*: API keys, JWT tokens, session IDs, OAuth tokens, AWS credentials
-
-\- \*\*Parameter Analysis\*\*: Identifies URLs with query parameters (injection points)
-
-\- \*\*API Endpoint Discovery\*\*: REST APIs, GraphQL, versioned endpoints
-
-\- \*\*Sensitive File Detection\*\*: Backups, configs, database dumps, source code
+## ✨ Features
 
 
 
-\### 🎯 Vulnerability Pattern Matching
+### 🔍 Smart Pattern Detection
 
-\- \*\*SQL Injection\*\*: Detects potential SQLi parameters
+- \*\*Token \& Secret Detection\*\*: API keys, JWT tokens, session IDs, OAuth tokens, AWS credentials
 
-\- \*\*Cross-Site Scripting (XSS)\*\*: Identifies XSS-prone parameters
+- \*\*Parameter Analysis\*\*: Identifies URLs with query parameters (injection points)
 
-\- \*\*Local/Remote File Inclusion\*\*: LFI/RFI vulnerable patterns
+- \*\*API Endpoint Discovery\*\*: REST APIs, GraphQL, versioned endpoints
 
-\- \*\*Server-Side Request Forgery (SSRF)\*\*: SSRF attack vectors
-
-\- \*\*Insecure Direct Object Reference (IDOR)\*\*: IDOR vulnerable endpoints
-
-\- \*\*Open Redirect\*\*: Open redirect vulnerabilities
+- \*\*Sensitive File Detection\*\*: Backups, configs, database dumps, source code
 
 
 
-\### 🚀 HTTP Status Intelligence
+### 🎯 Vulnerability Pattern Matching
 
-\- \*\*200\*\*: Alive and accessible URLs
+- \*\*SQL Injection\*\*: Detects potential SQLi parameters
 
-\- \*\*401\*\*: Unauthorized (auth bypass opportunities)
+- \*\*Cross-Site Scripting (XSS)\*\*: Identifies XSS-prone parameters
 
-\- \*\*403\*\*: Forbidden (potential bypasses)
+- \*\*Local/Remote File Inclusion\*\*: LFI/RFI vulnerable patterns
 
-\- \*\*405\*\*: Method not allowed (alternative HTTP methods)
+- \*\*Server-Side Request Forgery (SSRF)\*\*: SSRF attack vectors
 
-\- \*\*429\*\*: Rate limiting detected
+- \*\*Insecure Direct Object Reference (IDOR)\*\*: IDOR vulnerable endpoints
 
-\- \*\*500+\*\*: Server errors (exploitation opportunities)
-
-
-
-\### ⚡ Performance
-
-\- \*\*Concurrent Processing\*\*: Async multi-threaded URL checking
-
-\- \*\*Fast Mode\*\*: Static analysis without HTTP requests
-
-\- \*\*Progress Tracking\*\*: Real-time progress updates
-
-\- \*\*Smart Deduplication\*\*: Automatic URL normalization
+- \*\*Open Redirect\*\*: Open redirect vulnerabilities
 
 
 
-\## 📦 Installation
+### 🚀 HTTP Status Intelligence
+
+- \*\*200\*\*: Alive and accessible URLs
+
+- \*\*401\*\*: Unauthorized (auth bypass opportunities)
+
+- \*\*403\*\*: Forbidden (potential bypasses)
+
+- \*\*405\*\*: Method not allowed (alternative HTTP methods)
+
+- \*\*429\*\*: Rate limiting detected
+
+- \*\*500+\*\*: Server errors (exploitation opportunities)
+
+
+### ⚡ Performance
+
+- \*\*Concurrent Processing\*\*: Async multi-threaded URL checking
+
+- \*\*Fast Mode\*\*: Static analysis without HTTP requests
+
+- \*\*Progress Tracking\*\*: Real-time progress updates
+
+- \*\*Smart Deduplication\*\*: Automatic URL normalization
 
 
 
-\### Python Version (Recommended) 🐍
+## 📦 Installation
+
+
+
+### Python Version (Recommended) 🐍
 
 
 
 ```bash
 
-\# Clone the repository
+# Clone the repository
 
 git clone https://github.com/abhijithmotty/zort.git
 
 cd zort
+```
+
+## 🧩 Recommended Setup (Kali / Linux)
+
+If you're using **Kali Linux** or any Linux distribution, it's strongly recommended to use a **Python virtual environment (venv)** to prevent conflicts with system packages.
+
+### 🔹 Steps
+
+```bash
+# Install venv module (if not already installed)
+sudo apt install python3-venv -y
+
+# Create a new virtual environment
+python3 -m venv venv
+
+# Activate the environment
+source venv/bin/activate
 
 
-
-\# Install Python dependencies
+# Install Python dependencies
 
 pip install -r requirements.txt
 
 
 
-\# Make executable
+# Make executable
 
 chmod +x zort.py
 
 
 
-\# Run
+# Run
 
 ./zort.py urls.txt
 
@@ -136,55 +151,55 @@ chmod +x zort.py
 
 
 
-\### Requirements
+### Requirements
 
 
 
 \*\*Python version:\*\*
 
-\- Python 3.7 or higher
+- Python 3.7 or higher
 
-\- `aiohttp` library
-
-
+- `aiohttp` library
 
 
 
-\## 🚀 Quick Start
+
+
+## 🚀 Quick Start
 
 
 
-\### Python
+### Python
 
 
 
 ```bash
 
-\# Basic usage
+# Basic usage
 
 ./zort.py urls.txt
 
 
 
-\# With custom threads and timeout
+# With custom threads and timeout
 
 ./zort.py urls.txt -t 100 -T 5
 
 
 
-\# Fast mode (no HTTP checks)
+# Fast mode (no HTTP checks)
 
 ./zort.py urls.txt --skip-check
 
 
 
-\# With external wordlist
+# With external wordlist
 
 ./zort.py urls.txt -w custom\_keywords.txt
 
 
 
-\# Custom output directory
+# Custom output directory
 
 ./zort.py urls.txt -o my\_results
 
@@ -194,41 +209,41 @@ chmod +x zort.py
 
 
 
-\### Typical Bug Bounty Workflow
+### Typical Bug Bounty Workflow
 
 
 
 ```bash
 
-\# 1. Collect URLs using waybackurls
+# 1. Collect URLs using waybackurls
 
 echo "target.com" | waybackurls > urls.txt
 
 
 
-\# 2. Run ZORT analysis
+# 2. Run ZORT analysis
 
 ./zort.py urls.txt -t 100
 
 
 
-\# 3. Start testing!
+# 3. Start testing!
 
-\# - Check results/tokens\_secrets.txt for quick wins
+# - Check results/tokens\_secrets.txt for quick wins
 
-\# - Review results/interesting\_codes.txt for bypasses
+# - Review results/interesting\_codes.txt for bypasses
 
-\# - Test results/potential\_vulnerabilities/ for vulns
+# - Test results/potential\_vulnerabilities/ for vulns
 
 ```
 
 
 
-\## 📖 Usage
+## 📖 Usage
 
 
 
-\### Python Version
+### Python Version
 
 
 
@@ -240,44 +255,44 @@ echo "target.com" | waybackurls > urls.txt
 
 ARGUMENTS:
 
-&nbsp; url\_file          Text file containing URLs (one per line)
+ url\_file          Text file containing URLs (one per line)
 
 
 
 OPTIONS:
 
-&nbsp; -w, --wordlist    Optional external wordlist file
+ -w, --wordlist    Optional external wordlist file
 
-&nbsp; -t, --threads     Number of concurrent requests (default: 50)
+ -t, --threads     Number of concurrent requests (default: 50)
 
-&nbsp; -T, --timeout     Timeout per URL in seconds (default: 10)
+ -T, --timeout     Timeout per URL in seconds (default: 10)
 
-&nbsp; -s, --skip-check  Skip HTTP checks (static analysis only)
+ -s, --skip-check  Skip HTTP checks (static analysis only)
 
-&nbsp; -o, --output      Output directory (default: results)
+ -o, --output      Output directory (default: results)
 
-&nbsp; -h, --help        Show help message
+ -h, --help        Show help message
 
-&nbsp; -v, --version     Show version
+ -v, --version     Show version
 
 
 
 EXAMPLES:
 
-&nbsp; ./zort.py urls.txt
+ ./zort.py urls.txt
 
-&nbsp; ./zort.py urls.txt -w keywords.txt -t 100 -T 5
+ ./zort.py urls.txt -w keywords.txt -t 100 -T 5
 
-&nbsp; ./zort.py urls.txt --skip-check
+ ./zort.py urls.txt --skip-check
 
-&nbsp; ./zort.py urls.txt -o custom\_output
+ ./zort.py urls.txt -o custom\_output
 
 ```
 
 
 
 
-\## 📂 Output Structure
+## 📂 Output Structure
 
 
 
@@ -331,11 +346,11 @@ results/
 
 
 
-\## 🎯 Bug Bounty Hunting Guide
+## 🎯 Bug Bounty Hunting Guide
 
 
 
-\### Priority Testing Order
+### Priority Testing Order
 
 
 
@@ -387,31 +402,31 @@ results/
 
 
 
-\### Pro Tips
+### Pro Tips
 
 
 
-\- \*\*Start Fast\*\*: Use `--skip-check` for initial pattern analysis on large datasets
+- \*\*Start Fast\*\*: Use `--skip-check` for initial pattern analysis on large datasets
 
-\- \*\*Focus on High-Value Targets\*\*: Prioritize tokens\_secrets.txt and interesting\_codes.txt
+- \*\*Focus on High-Value Targets\*\*: Prioritize tokens\_secrets.txt and interesting\_codes.txt
 
-\- \*\*Combine Results\*\*: Cross-reference multiple output files for better context
+- \*\*Combine Results\*\*: Cross-reference multiple output files for better context
 
-\- \*\*Custom Wordlists\*\*: Create domain-specific wordlists for better coverage
+- \*\*Custom Wordlists\*\*: Create domain-specific wordlists for better coverage
 
-\- \*\*Automate Follow-up\*\*: Pipe results to other tools like nuclei, sqlmap, etc.
-
-
-
-\## 🔧 Advanced Usage
+- \*\*Automate Follow-up\*\*: Pipe results to other tools like nuclei, sqlmap, etc.
 
 
 
-\### Custom Wordlist Example
+## 🔧 Advanced Usage
+
+
+
+### Custom Wordlist Example
 
 ```bash
 
-\# Create custom wordlist
+# Create custom wordlist
 
 cat > custom\_keywords.txt << EOF
 
@@ -431,13 +446,13 @@ EOF
 
 
 
-\# Run with custom wordlist (Python)
+# Run with custom wordlist (Python)
 
 ./zort.py urls.txt -w custom\_keywords.txt
 
 
 
-\# Run with custom wordlist (Bash)
+# Run with custom wordlist (Bash)
 
 ./zort.sh urls.txt -w custom\_keywords.txt
 
@@ -445,13 +460,13 @@ EOF
 
 
 
-\### Integration with Other Tools
+### Integration with Other Tools
 
 
 
 ```bash
 
-\# Waybackurls → ZORT → Nuclei
+# Waybackurls → ZORT → Nuclei
 
 echo "target.com" | waybackurls | tee urls.txt
 
@@ -461,25 +476,25 @@ nuclei -l results/alive\_200.txt -t ~/nuclei-templates/
 
 
 
-\# ZORT → SQLMap
+# ZORT → SQLMap
 
 ./zort.py urls.txt
 
 cat results/potential\_vulnerabilities/sqli.txt | while read url; do
 
-&nbsp;   sqlmap -u "$url" --batch --level 2
+sqlmap -u "$url" --batch --level 2
 
 done
 
 
 
-\# ZORT → FFUF for parameter fuzzing
+# ZORT → FFUF for parameter fuzzing
 
 cat results/parameters.txt | ffuf -w wordlist.txt -u FUZZ
 
 
 
-\# ZORT → httpx for detailed analysis
+# ZORT → httpx for detailed analysis
 
 ./zort.py urls.txt --skip-check  # Fast pattern analysis
 
@@ -489,7 +504,7 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 
 
-\### Performance Tuning
+### Performance Tuning
 
 
 
@@ -497,19 +512,19 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 ```bash
 
-\# Maximum speed (use with caution)
+# Maximum speed (use with caution)
 
 ./zort.py urls.txt -t 200 -T 3
 
 
 
-\# Conservative (avoid rate limiting)
+# Conservative (avoid rate limiting)
 
 ./zort.py urls.txt -t 25 -T 15
 
 
 
-\# Static analysis only (fastest)
+# Static analysis only (fastest)
 
 ./zort.py urls.txt --skip-check
 
@@ -519,7 +534,7 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 
 
-\## 🎨 Sample Output
+## 🎨 Sample Output
 
 
 
@@ -535,113 +550,113 @@ cat results/tokens\_secrets.txt | httpx -mc 200 -follow-redirects
 
 
 
-\[INFO] Loading and deduplicating URLs...
+[INFO] Loading and deduplicating URLs...
 
-\[INFO] Original URLs: 47140, Unique URLs: 47079
-
-
-
-\[!] Phase 1: Static Pattern Analysis
-
-\[INFO] Performing static URL analysis...
-
-\[✓] Static analysis complete:
-
-&nbsp; • URLs with parameters: 12,453
-
-&nbsp; • URLs with tokens/secrets: 234
-
-&nbsp; • API endpoints: 567
+[INFO] Original URLs: 47140, Unique URLs: 47079
 
 
 
-\[!] Phase 2: HTTP Status Code Analysis
+[!] Phase 1: Static Pattern Analysis
 
-\[INFO] Checking URLs with HTTP requests (concurrency: 50, timeout: 10s)
+[INFO] Performing static URL analysis...
 
-\[100%] Checked: 47079/47079 | 200: 8,432 | Interesting: 1,245
+[✓] Static analysis complete:
+
+ • URLs with parameters: 12,453
+
+ • URLs with tokens/secrets: 234
+
+ • API endpoints: 567
 
 
 
-\[✓] Analysis completed in 125.4s
+[!] Phase 2: HTTP Status Code Analysis
+
+[INFO] Checking URLs with HTTP requests (concurrency: 50, timeout: 10s)
+
+[100%] Checked: 47079/47079 | 200: 8,432 | Interesting: 1,245
 
 
 
-\[!] Quick Start Guide:
+[✓] Analysis completed in 125.4s
 
-&nbsp; 1. Check tokens\_secrets.txt for exposed credentials
 
-&nbsp; 2. Review interesting\_codes.txt for 401/403 (potential bypasses)
 
-&nbsp; 3. Test parameters.txt for injection vulnerabilities
+[!] Quick Start Guide:
 
-&nbsp; 4. Explore api\_endpoints.txt for API testing
+ 1. Check tokens\_secrets.txt for exposed credentials
 
-&nbsp; 5. Review potential\_vulnerabilities/ by attack type
+ 2. Review interesting\_codes.txt for 401/403 (potential bypasses)
+
+ 3. Test parameters.txt for injection vulnerabilities
+
+ 4. Explore api\_endpoints.txt for API testing
+
+ 5. Review potential\_vulnerabilities/ by attack type
 
 ```
 
 
 
-\## 🔍 Detection Patterns
+## 🔍 Detection Patterns
 
 
 
-\### Built-in Token Patterns
+### Built-in Token Patterns
 
-\- API keys: `api\_key`, `apikey`, `api-key`
+- API keys: `api\_key`, `apikey`, `api-key`
 
-\- Access tokens: `access\_token`, `accessToken`
+- Access tokens: `access\_token`, `accessToken`
 
-\- Session identifiers: `session\_id`, `sessionid`, `PHPSESSID`
+- Session identifiers: `session\_id`, `sessionid`, `PHPSESSID`
 
-\- JWT tokens: `jwt`, `jwt\_token`, `bearer`
+- JWT tokens: `jwt`, `jwt\_token`, `bearer`
 
-\- OAuth tokens: `oauth\_token`, `oauth\_secret`
+- OAuth tokens: `oauth\_token`, `oauth\_secret`
 
-\- Cloud credentials: `aws\_key`, `s3\_key`, `azure\_key`
+- Cloud credentials: `aws\_key`, `s3\_key`, `azure\_key`
 
-\- GitHub/GitLab tokens
+- GitHub/GitLab tokens
 
-\- Slack tokens
-
-
-
-\### Vulnerability Parameters
-
-\- \*\*SQLi\*\*: `id`, `user`, `username`, `email`, `search`, `q`, `query`
-
-\- \*\*XSS\*\*: `search`, `q`, `query`, `name`, `comment`, `message`
-
-\- \*\*LFI\*\*: `file`, `path`, `page`, `include`, `dir`, `template`
-
-\- \*\*RFI\*\*: `url`, `uri`, `link`, `src`, `source`, `redirect`
-
-\- \*\*SSRF\*\*: `url`, `uri`, `host`, `proxy`, `api`, `callback`, `webhook`
-
-\- \*\*IDOR\*\*: `id`, `uid`, `user\_id`, `account`, `order`, `invoice`
+- Slack tokens
 
 
 
-\### Interesting File Extensions
+### Vulnerability Parameters
 
-\- Backups: `.bak`, `.backup`, `.old`, `.orig`, `.save`
+- \*\*SQLi\*\*: `id`, `user`, `username`, `email`, `search`, `q`, `query`
 
-\- Configs: `.conf`, `.config`, `.ini`, `.env`, `.yaml`
+- \*\*XSS\*\*: `search`, `q`, `query`, `name`, `comment`, `message`
 
-\- Databases: `.sql`, `.db`, `.sqlite`, `.dump`
+- \*\*LFI\*\*: `file`, `path`, `page`, `include`, `dir`, `template`
 
-\- Archives: `.zip`, `.tar`, `.gz`, `.rar`, `.7z`
+- \*\*RFI\*\*: `url`, `uri`, `link`, `src`, `source`, `redirect`
 
-\- Certificates: `.key`, `.pem`, `.crt`, `.cer`, `.p12`
+- \*\*SSRF\*\*: `url`, `uri`, `host`, `proxy`, `api`, `callback`, `webhook`
 
-\- Source control: `.git`, `.svn`, `.DS\_Store`
-
-\- Temporary: `.swp`, `.tmp`, `.temp`, `~`
+- \*\*IDOR\*\*: `id`, `uid`, `user\_id`, `account`, `order`, `invoice`
 
 
 
-\## 🤝 Contributing
+### Interesting File Extensions
+
+- Backups: `.bak`, `.backup`, `.old`, `.orig`, `.save`
+
+- Configs: `.conf`, `.config`, `.ini`, `.env`, `.yaml`
+
+- Databases: `.sql`, `.db`, `.sqlite`, `.dump`
+
+- Archives: `.zip`, `.tar`, `.gz`, `.rar`, `.7z`
+
+- Certificates: `.key`, `.pem`, `.crt`, `.cer`, `.p12`
+
+- Source control: `.git`, `.svn`, `.DS\_Store`
+
+- Temporary: `.swp`, `.tmp`, `.temp`, `~`
+
+
+
+## 🤝 Contributing
 
 
 
@@ -649,7 +664,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 
 
-\### Development Setup
+### Development Setup
 
 
 
@@ -672,7 +687,7 @@ python -m pytest tests/  # Run tests (if available)
 
 
 
-\### Adding New Patterns
+### Adding New Patterns
 
 
 
@@ -684,47 +699,47 @@ Edit the `Config` class to add patterns:
 
 class Config:
 
-&nbsp;   BUILTIN\_KEYWORDS = \[...]  # Add keywords
+   BUILTIN\_KEYWORDS = \[...]  # Add keywords
 
-&nbsp;   TOKEN\_PATTERNS = \[...]     # Add regex patterns
+   TOKEN\_PATTERNS = \[...]     # Add regex patterns
 
-&nbsp;   VULN\_PATTERNS = {...}      # Add vulnerability patterns
+   VULN\_PATTERNS = {...}      # Add vulnerability patterns
 
 ```
 
 
 
-\## 📝 Version History
+## 📝 Version History
 
 
 
-\### v2.0.0 (Current)
+### v2.0.0 (Current)
 
-\- Complete Python rewrite
+- Complete Python rewrite
 
-\- Async HTTP requests with aiohttp
+- Async HTTP requests with aiohttp
 
-\- 10x performance improvement
+- 10x performance improvement
 
-\- Cross-platform support
+- Cross-platform support
 
-\- Better error handling
+- Better error handling
 
-\- Real-time progress display
-
-
-
-\### v1.0.0
-
-\- Initial bash version
-
-\- Basic URL checking and pattern detection
-
-\- Concurrent processing with xargs/parallel
+- Real-time progress display
 
 
 
-\## 📝 License
+### v1.0.0
+
+- Initial bash version
+
+- Basic URL checking and pattern detection
+
+- Concurrent processing with xargs/parallel
+
+
+
+## 📝 License
 
 
 
@@ -732,7 +747,7 @@ This project is licensed under the MIT License - see the \[LICENSE](LICENSE) fil
 
 
 
-\## ⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 
 
@@ -740,31 +755,31 @@ This tool is for educational and ethical testing purposes only. Always obtain pr
 
 
 
-\## 🙏 Acknowledgments
+## 🙏 Acknowledgments
 
 
 
-\- Inspired by the bug bounty community
+- Inspired by the bug bounty community
 
-\- Built for pentesters, by pentesters
+- Built for pentesters, by pentesters
 
-\- Thanks to all contributors and users
+- Thanks to all contributors and users
 
-\- Special thanks to the Python and bash communities
-
-
-
-\## 📧 Contact
+- Special thanks to the Python and bash communities
 
 
 
-\- GitHub Issues: \[Report bugs or request features](https://github.com/abhijithmotty/zort/issues)
-
-\- Twitter: \[@yourhandle](https://x.com/primeaetheron)
+## 📧 Contact
 
 
 
-\## 🌟 Star History
+- GitHub Issues: \[Report bugs or request features](https://github.com/abhijithmotty/zort/issues)
+
+- Twitter: \[@yourhandle](https://x.com/primeaetheron)
+
+
+
+## 🌟 Star History
 
 
 
