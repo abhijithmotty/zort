@@ -1,0 +1,588 @@
+#!/usr/bin/env python3
+"""
+ZORT - Advanced URL Analysis Tool
+Bug Bounty & Pentesting Edition
+
+A powerful URL analysis and vulnerability detection tool for security researchers.
+"""
+
+import asyncio
+import aiohttp
+import argparse
+import re
+import sys
+from pathlib import Path
+from urllib.parse import urlparse, parse_qs
+from datetime import datetime
+from collections import defaultdict
+import json
+
+# Color codes for terminal output
+class Colors:
+    RED = '\033[0;31m'
+    GREEN = '\033[0;32m'
+    YELLOW = '\033[1;33m'
+    BLUE = '\033[0;34m'
+    MAGENTA = '\033[0;35m'
+    CYAN = '\033[0;36m'
+    NC = '\033[0m'  # No Color
+    BOLD = '\033[1m'
+
+# Configuration
+class Config:
+    BUILTIN_KEYWORDS = [
+        # Authentication & Authorization
+        "admin", "administrator", "auth", "authentication", "login", "signin", "signup",
+        "register", "password", "passwd", "credential", "oauth", "saml", "sso",
+        "session", "cookie", "jwt", "bearer", "token", "refresh", "access_token",
+        
+        # API & Endpoints
+        "api", "rest", "graphql", "soap", "grpc", "endpoint", "webhook", "callback",
+        "v1", "v2", "v3", "v4", "version", "swagger", "openapi", "wsdl",
+        
+        # Sensitive Data
+        "key", "secret", "private", "credential", "certificate", "cert", "pem",
+        "config", "configuration", "settings", "env", "environment",
+        
+        # Database & Storage
+        "database", "db", "sql", "mysql", "postgres", "mongo", "redis", "elastic",
+        "backup", "dump", "export", "archive", "s3", "bucket", "storage", "blob",
+        
+        # Development & Testing
+        "dev", "development", "test", "testing", "debug", "staging", "uat",
+        "sandbox", "demo", "preview", "beta", "alpha", "internal",
+        
+        # Infrastructure
+        "server", "console", "dashboard", "panel", "monitor", "metrics",
+        "docker", "kubernetes", "k8s", "jenkins", "gitlab", "github",
+        "aws", "azure", "gcp", "cloud", "firebase", "heroku",
+        
+        # Security Critical
+        "upload", "download", "file", "document", "image", "avatar",
+        "user", "users", "account", "profile", "member", "customer",
+        "payment", "billing", "invoice", "transaction", "checkout",
+        "email", "mail", "smtp", "imap", "webmail", "mailbox",
+        
+        # Sensitive Files
+        ".env", ".git", ".svn", ".config", ".sql", ".db", ".log", ".bak", ".backup",
+        ".old", ".tmp", ".temp", ".swp", "phpinfo", "info.php",
+        
+        # Admin Panels
+        "wp-admin", "wp-config", "administrator", "manager", "adminer",
+        "phpmyadmin", "cpanel", "plesk", "webmin", "control",
+        
+        # Common Vulnerabilities
+        "redirect", "url", "file", "path", "dir", "page", "include",
+        "exec", "cmd", "command", "shell", "eval", "system",
+    ]
+    
+    TOKEN_PATTERNS = [
+        r'api[_-]?key', r'access[_-]?token', r'auth[_-]?token',
+        r'session[_-]?id', r'session[_-]?token', r'jwt[_-]?token',
+        r'bearer[_-]?token', r'refresh[_-]?token', r'client[_-]?secret',
+        r'client[_-]?id', r'api[_-]?secret', r'private[_-]?key',
+        r'secret[_-]?key', r'access[_-]?key', r'aws[_-]?key',
+        r's3[_-]?key', r'oauth[_-]?token', r'slack[_-]?token',
+        r'github[_-]?token', r'gitlab[_-]?token',
+    ]
+    
+    VULN_PATTERNS = {
+        'sqli': ['id=', 'user=', 'username=', 'email=', 'search=', 'q=', 'query=', 'keyword=', 'category=', 'item=', 'product='],
+        'xss': ['search=', 'q=', 'query=', 'keyword=', 'name=', 'comment=', 'message=', 'title=', 'description='],
+        'lfi': ['file=', 'path=', 'page=', 'include=', 'dir=', 'folder=', 'document=', 'template=', 'layout='],
+        'rfi': ['url=', 'uri=', 'link=', 'src=', 'source=', 'redirect=', 'return=', 'goto=', 'next='],
+        'ssrf': ['url=', 'uri=', 'link=', 'host=', 'proxy=', 'api=', 'endpoint=', 'callback=', 'webhook='],
+        'idor': ['id=', 'uid=', 'user_id=', 'account=', 'profile=', 'order=', 'invoice=', 'document='],
+        'openredirect': ['redirect=', 'return=', 'url=', 'next=', 'goto=', 'continue=', 'target=', 'dest='],
+    }
+    
+    INTERESTING_EXTENSIONS = [
+        '.sql', '.db', '.sqlite', '.bak', '.backup', '.old', '.orig', '.save',
+        '.conf', '.config', '.ini', '.env', '.properties', '.yaml', '.yml',
+        '.json', '.xml', '.log', '.txt', '.csv', '.xls', '.xlsx',
+        '.zip', '.tar', '.gz', '.rar', '.7z', '.dump', '.dmp',
+        '.key', '.pem', '.crt', '.cer', '.p12', '.pfx',
+        '.git', '.svn', '.DS_Store', '.htaccess', '.htpasswd',
+        '.php~', '.php.bak', '.asp.bak', '.jsp.bak', '.swp',
+    ]
+    
+    API_PATTERNS = ['/v1', '/v2', '/v3', '/v4', '/api/', '/rest/', '/graphql', '/ws/', '/service/']
+    
+    INTERESTING_STATUS_CODES = [401, 403, 405, 429, 500, 501, 502, 503]
+
+class URLAnalyzer:
+    """Main URL analysis class"""
+    
+    def __init__(self, args):
+        self.args = args
+        self.output_base = Path(args.output)
+        self.log_file = self.output_base / "zort.log"
+        self.results = {
+            'alive_200': set(),
+            'interesting_codes': [],
+            'parameters': set(),
+            'tokens_secrets': set(),
+            'api_endpoints': set(),
+            'vulnerabilities': defaultdict(set),
+            'keywords': defaultdict(set),
+        }
+        self.stats = {
+            'total_urls': 0,
+            'checked': 0,
+            'alive': 0,
+            'interesting': 0,
+        }
+        
+        # Compile regex patterns
+        self.token_regex = re.compile('|'.join(Config.TOKEN_PATTERNS), re.IGNORECASE)
+        
+        # Setup
+        self.setup_output_directories()
+        self.load_keywords()
+        
+    def setup_output_directories(self):
+        """Create output directory structure"""
+        self.output_base.mkdir(exist_ok=True)
+        (self.output_base / "potential_vulnerabilities").mkdir(exist_ok=True)
+        (self.output_base / "keywords").mkdir(exist_ok=True)
+        
+    def load_keywords(self):
+        """Load keywords from config and optional wordlist"""
+        self.keywords = Config.BUILTIN_KEYWORDS.copy()
+        
+        if self.args.wordlist and Path(self.args.wordlist).exists():
+            with open(self.args.wordlist, 'r') as f:
+                custom_keywords = [line.strip() for line in f if line.strip()]
+                self.keywords.extend(custom_keywords)
+                self.log(f"Loaded {len(custom_keywords)} custom keywords from {self.args.wordlist}")
+        
+        self.log(f"Total keywords: {len(self.keywords)}")
+    
+    def log(self, message, level="INFO"):
+        """Log message to file and optionally console"""
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_entry = f"[{timestamp}] [{level}] {message}\n"
+        
+        with open(self.log_file, 'a') as f:
+            f.write(log_entry)
+    
+    def print_colored(self, message, color=Colors.NC, prefix=""):
+        """Print colored message to console"""
+        if prefix:
+            print(f"{color}{prefix}{Colors.NC} {message}")
+        else:
+            print(f"{color}{message}{Colors.NC}")
+    
+    def normalize_url(self, url):
+        """Normalize URL by removing fragments and trailing slashes"""
+        url = url.strip()
+        if '#' in url:
+            url = url.split('#')[0]
+        url = url.rstrip('/')
+        return url
+    
+    def has_parameters(self, url):
+        """Check if URL has query parameters"""
+        return '?' in url
+    
+    def extract_parameters(self, url):
+        """Extract parameter names from URL"""
+        if not self.has_parameters(url):
+            return []
+        
+        try:
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query)
+            return list(params.keys())
+        except:
+            return []
+    
+    def matches_token_pattern(self, url):
+        """Check if URL matches token/secret patterns"""
+        return bool(self.token_regex.search(url))
+    
+    def has_interesting_extension(self, url):
+        """Check if URL has interesting file extension"""
+        url_lower = url.lower()
+        return any(ext in url_lower for ext in Config.INTERESTING_EXTENSIONS)
+    
+    def is_api_endpoint(self, url):
+        """Check if URL matches API patterns"""
+        return any(pattern in url for pattern in Config.API_PATTERNS)
+    
+    def analyze_vulnerability_patterns(self, url):
+        """Analyze URL for vulnerability patterns"""
+        vulnerabilities = []
+        
+        for vuln_type, patterns in Config.VULN_PATTERNS.items():
+            if any(pattern in url for pattern in patterns):
+                vulnerabilities.append(vuln_type)
+        
+        return vulnerabilities
+    
+    def analyze_url_static(self, url):
+        """Perform static analysis on URL without HTTP request"""
+        # Check for parameters
+        if self.has_parameters(url):
+            self.results['parameters'].add(url)
+            
+            # Check vulnerability patterns
+            vulns = self.analyze_vulnerability_patterns(url)
+            for vuln in vulns:
+                self.results['vulnerabilities'][vuln].add(url)
+        
+        # Check for tokens/secrets
+        if self.matches_token_pattern(url):
+            self.results['tokens_secrets'].add(url)
+        
+        # Check for API endpoints
+        if self.is_api_endpoint(url):
+            self.results['api_endpoints'].add(url)
+        
+        # Check for interesting files
+        if self.has_interesting_extension(url):
+            self.results['vulnerabilities']['interesting_files'].add(url)
+        
+        # Check keywords
+        url_lower = url.lower()
+        for keyword in self.keywords:
+            if keyword.lower() in url_lower:
+                self.results['keywords'][keyword].add(url)
+    
+    async def check_url(self, session, url):
+        """Check URL HTTP status code"""
+        try:
+            async with session.get(
+                url,
+                timeout=aiohttp.ClientTimeout(total=self.args.timeout),
+                allow_redirects=False,
+                ssl=False
+            ) as response:
+                return url, response.status
+        except asyncio.TimeoutError:
+            return url, 0
+        except:
+            return url, 0
+    
+    async def http_check_urls(self, urls):
+        """Perform HTTP checks on URLs with concurrency control"""
+        self.print_colored("Phase 2: HTTP Status Code Analysis", Colors.MAGENTA, "[!]")
+        self.print_colored(f"Checking URLs with HTTP requests (concurrency: {self.args.threads}, timeout: {self.args.timeout}s)", Colors.BLUE, "[INFO]")
+        print()
+        
+        connector = aiohttp.TCPConnector(limit=self.args.threads, ssl=False)
+        timeout = aiohttp.ClientTimeout(total=self.args.timeout)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            tasks = [self.check_url(session, url) for url in urls]
+            
+            # Process results as they complete
+            for i, task in enumerate(asyncio.as_completed(tasks), 1):
+                url, status = await task
+                
+                self.stats['checked'] = i
+                
+                # Log result
+                self.log(f"{status}: {url}", level="CHECK")
+                
+                # Categorize by status
+                if status == 200:
+                    self.results['alive_200'].add(url)
+                    self.stats['alive'] += 1
+                elif status in Config.INTERESTING_STATUS_CODES:
+                    self.results['interesting_codes'].append(f"[{status}] {url}")
+                    self.stats['interesting'] += 1
+                
+                # Progress update
+                if i % 100 == 0 or i == len(urls):
+                    progress = int((i / len(urls)) * 100)
+                    print(f"\r{Colors.BLUE}[{progress:3d}%]{Colors.NC} Checked: {i}/{len(urls)} | "
+                          f"{Colors.GREEN}200: {self.stats['alive']}{Colors.NC} | "
+                          f"{Colors.YELLOW}Interesting: {self.stats['interesting']}{Colors.NC}", end='', flush=True)
+        
+        print("\n")
+    
+    def save_results(self):
+        """Save all results to files"""
+        self.print_colored("Saving results...", Colors.BLUE, "[INFO]")
+        
+        # Save alive URLs
+        if self.results['alive_200']:
+            alive_file = self.output_base / "alive_200.txt"
+            with open(alive_file, 'w') as f:
+                for url in sorted(self.results['alive_200']):
+                    f.write(f"{url}\n")
+        
+        # Save interesting status codes
+        if self.results['interesting_codes']:
+            interesting_file = self.output_base / "interesting_codes.txt"
+            with open(interesting_file, 'w') as f:
+                for entry in sorted(self.results['interesting_codes']):
+                    f.write(f"{entry}\n")
+        
+        # Save parameters
+        if self.results['parameters']:
+            params_file = self.output_base / "parameters.txt"
+            with open(params_file, 'w') as f:
+                for url in sorted(self.results['parameters']):
+                    f.write(f"{url}\n")
+        
+        # Save tokens/secrets
+        if self.results['tokens_secrets']:
+            tokens_file = self.output_base / "tokens_secrets.txt"
+            with open(tokens_file, 'w') as f:
+                for url in sorted(self.results['tokens_secrets']):
+                    f.write(f"{url}\n")
+        
+        # Save API endpoints
+        if self.results['api_endpoints']:
+            api_file = self.output_base / "api_endpoints.txt"
+            with open(api_file, 'w') as f:
+                for url in sorted(self.results['api_endpoints']):
+                    f.write(f"{url}\n")
+        
+        # Save vulnerabilities
+        vuln_dir = self.output_base / "potential_vulnerabilities"
+        for vuln_type, urls in self.results['vulnerabilities'].items():
+            if urls:
+                vuln_file = vuln_dir / f"{vuln_type}.txt"
+                with open(vuln_file, 'w') as f:
+                    for url in sorted(urls):
+                        f.write(f"{url}\n")
+        
+        # Save keywords
+        keyword_dir = self.output_base / "keywords"
+        for keyword, urls in self.results['keywords'].items():
+            if urls:
+                keyword_file = keyword_dir / f"{keyword}.txt"
+                with open(keyword_file, 'w') as f:
+                    for url in sorted(urls):
+                        f.write(f"{url}\n")
+    
+    def generate_summary(self):
+        """Generate and display summary report"""
+        summary_file = self.output_base / "summary_report.txt"
+        
+        vuln_count = sum(len(urls) for urls in self.results['vulnerabilities'].values())
+        keyword_matches = len([k for k, v in self.results['keywords'].items() if v])
+        
+        summary = f"""
+═══════════════════════════════════════════════════════════════
+           ZORT - URL Analysis Summary Report
+═══════════════════════════════════════════════════════════════
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+OVERVIEW
+───────────────────────────────────────────────────────────────
+Total URLs analyzed: {self.stats['total_urls']}
+
+"""
+        
+        if not self.args.skip_check:
+            summary += f"""HTTP STATUS RESULTS
+───────────────────────────────────────────────────────────────
+✓ Alive (200): {len(self.results['alive_200'])}
+⚠ Interesting codes (401/403/405/500...): {len(self.results['interesting_codes'])}
+
+"""
+        
+        summary += f"""PATTERN ANALYSIS
+───────────────────────────────────────────────────────────────
+🔑 URLs with tokens/secrets: {len(self.results['tokens_secrets'])}
+📊 API endpoints: {len(self.results['api_endpoints'])}
+🔍 URLs with parameters: {len(self.results['parameters'])}
+
+POTENTIAL VULNERABILITY VECTORS
+───────────────────────────────────────────────────────────────
+"""
+        
+        for vuln_type, urls in sorted(self.results['vulnerabilities'].items()):
+            summary += f"{vuln_type:<20} : {len(urls)} URLs\n"
+        
+        summary += f"""
+KEYWORD CATEGORIES
+───────────────────────────────────────────────────────────────
+Total keyword categories matched: {keyword_matches}
+
+TOP FINDINGS
+───────────────────────────────────────────────────────────────
+"""
+        
+        # Sample tokens/secrets
+        if self.results['tokens_secrets']:
+            summary += "Sample URLs with tokens/secrets:\n"
+            for url in list(self.results['tokens_secrets'])[:5]:
+                summary += f"  • {url}\n"
+            summary += "\n"
+        
+        # Sample API endpoints
+        if self.results['api_endpoints']:
+            summary += "Sample API endpoints:\n"
+            for url in list(self.results['api_endpoints'])[:5]:
+                summary += f"  • {url}\n"
+            summary += "\n"
+        
+        # Sample interesting codes
+        if self.results['interesting_codes']:
+            summary += "Sample interesting status codes:\n"
+            for entry in self.results['interesting_codes'][:5]:
+                summary += f"  • {entry}\n"
+            summary += "\n"
+        
+        summary += f"""OUTPUT FILES
+───────────────────────────────────────────────────────────────
+📁 Main results directory: {self.output_base}/
+"""
+        
+        if self.results['alive_200']:
+            summary += "  ✓ alive_200.txt\n"
+        if self.results['interesting_codes']:
+            summary += "  ⚠ interesting_codes.txt\n"
+        if self.results['parameters']:
+            summary += "  🔍 parameters.txt\n"
+        if self.results['tokens_secrets']:
+            summary += "  🔑 tokens_secrets.txt\n"
+        if self.results['api_endpoints']:
+            summary += "  📊 api_endpoints.txt\n"
+        
+        summary += """  📂 potential_vulnerabilities/
+  📂 keywords/
+
+═══════════════════════════════════════════════════════════════
+💡 TIP: Start with tokens_secrets.txt and interesting_codes.txt
+    for quick wins in bug bounty hunting!
+═══════════════════════════════════════════════════════════════
+"""
+        
+        # Save to file
+        with open(summary_file, 'w') as f:
+            f.write(summary)
+        
+        # Print to console
+        print(summary)
+        self.print_colored(f"Summary report saved: {summary_file}", Colors.GREEN, "[✓]")
+    
+    async def run(self):
+        """Main execution flow"""
+        start_time = datetime.now()
+        
+        # Header
+        print()
+        print("╔═══════════════════════════════════════════════════════════════╗")
+        print("║          ZORT - Advanced URL Analysis Tool                    ║")
+        print("║          Bug Bounty & Pentesting Edition                      ║")
+        print("╚═══════════════════════════════════════════════════════════════╝")
+        print()
+        
+        # Load and deduplicate URLs
+        self.print_colored("Loading and deduplicating URLs...", Colors.BLUE, "[INFO]")
+        
+        try:
+            with open(self.args.url_file, 'r') as f:
+                urls = [self.normalize_url(line.strip()) for line in f if line.strip()]
+        except Exception as e:
+            self.print_colored(f"Error reading file: {e}", Colors.RED, "[ERROR]")
+            sys.exit(1)
+        
+        # Deduplicate
+        original_count = len(urls)
+        urls = list(set(urls))
+        self.stats['total_urls'] = len(urls)
+        
+        self.print_colored(f"Original URLs: {original_count}, Unique URLs: {len(urls)}", Colors.BLUE, "[INFO]")
+        self.log(f"Deduplication: {original_count} -> {len(urls)} URLs")
+        
+        if not urls:
+            self.print_colored("No URLs to process", Colors.RED, "[ERROR]")
+            sys.exit(1)
+        
+        print()
+        
+        # Phase 1: Static Analysis
+        self.print_colored("Phase 1: Static Pattern Analysis", Colors.MAGENTA, "[!]")
+        self.print_colored("Performing static URL analysis...", Colors.BLUE, "[INFO]")
+        
+        for url in urls:
+            self.analyze_url_static(url)
+        
+        self.print_colored("Static analysis complete:", Colors.GREEN, "[✓]")
+        print(f"  • URLs with parameters: {len(self.results['parameters'])}")
+        print(f"  • URLs with tokens/secrets: {len(self.results['tokens_secrets'])}")
+        print(f"  • API endpoints: {len(self.results['api_endpoints'])}")
+        print()
+        
+        # Phase 2: HTTP Checks
+        if not self.args.skip_check:
+            await self.http_check_urls(urls)
+        else:
+            self.print_colored("Skipping HTTP checks (--skip-check enabled)", Colors.BLUE, "[INFO]")
+            print()
+        
+        # Phase 3: Save Results
+        self.print_colored("Phase 3: Saving Results", Colors.MAGENTA, "[!]")
+        self.save_results()
+        print()
+        
+        # Generate Summary
+        end_time = datetime.now()
+        duration = (end_time - start_time).total_seconds()
+        
+        self.generate_summary()
+        
+        print()
+        self.print_colored(f"Analysis completed in {duration:.1f}s", Colors.GREEN, "[✓]")
+        self.log(f"Analysis completed in {duration:.1f}s")
+        
+        print()
+        self.print_colored("Quick Start Guide:", Colors.MAGENTA, "[!]")
+        print("  1. Check tokens_secrets.txt for exposed credentials")
+        print("  2. Review interesting_codes.txt for 401/403 (potential bypasses)")
+        print("  3. Test parameters.txt for injection vulnerabilities")
+        print("  4. Explore api_endpoints.txt for API testing")
+        print("  5. Review potential_vulnerabilities/ by attack type")
+        print()
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='ZORT - Advanced URL Analysis Tool for Bug Bounty & Pentesting',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s urls.txt
+  %(prog)s urls.txt -w keywords.txt -t 100 -T 5
+  %(prog)s urls.txt --skip-check
+  %(prog)s urls.txt -o custom_output -t 50
+        """
+    )
+    
+    parser.add_argument('url_file', help='Text file containing URLs (one per line)')
+    parser.add_argument('-w', '--wordlist', help='Optional external wordlist file')
+    parser.add_argument('-t', '--threads', type=int, default=50, help='Number of concurrent requests (default: 50)')
+    parser.add_argument('-T', '--timeout', type=int, default=10, help='Timeout per URL in seconds (default: 10)')
+    parser.add_argument('-s', '--skip-check', action='store_true', help='Skip HTTP checks (static analysis only)')
+    parser.add_argument('-o', '--output', default='results', help='Output directory (default: results)')
+    parser.add_argument('-v', '--version', action='version', version='ZORT 2.0')
+    
+    args = parser.parse_args()
+    
+    # Validate input file
+    if not Path(args.url_file).exists():
+        print(f"{Colors.RED}[ERROR]{Colors.NC} File not found: {args.url_file}")
+        sys.exit(1)
+    
+    # Run analyzer
+    analyzer = URLAnalyzer(args)
+    
+    try:
+        asyncio.run(analyzer.run())
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}[WARN]{Colors.NC} Interrupted by user")
+        analyzer.log("Interrupted by user", level="WARN")
+        sys.exit(1)
+    except Exception as e:
+        print(f"{Colors.RED}[ERROR]{Colors.NC} {str(e)}")
+        analyzer.log(f"Fatal error: {str(e)}", level="ERROR")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

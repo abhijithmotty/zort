@@ -1,0 +1,5 @@
+https://example.com/api/v1/users?id=123
+https://example.com/admin/login
+https://example.com/config/database.php.bak
+https://example.com/search?q=test&session_id=abc123
+https://example.com/.env
