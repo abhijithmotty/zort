@@ -16,87 +16,6 @@
 
 
 
-> 🚀 **NEW in v2.0**: Complete Python rewrite with async support for 10x faster performance!
-
-
-
-## 🆕 What's New in v2.0
-
-
-
-- ✨ **Python rewrite** - More stable, faster, and easier to maintain
-
-- ⚡ **Async HTTP requests** - 10x faster URL checking with `aiohttp`
-
-- 🔧 **Better error handling** - No more cryptic bash errors
-
-- 🖥️ **Cross-platform** - Now works on Windows, Linux, and macOS
-
-- 📊 **Real-time progress** - Clean progress display without buffering issues
-
-- 🎯 **Same features** - All the power of v1 with none of the bugs
-
-
-
-## ✨ Features
-
-
-
-### 🔍 Smart Pattern Detection
-
-- **Token \& Secret Detection**: API keys, JWT tokens, session IDs, OAuth tokens, AWS credentials
-
-- **Parameter Analysis**: Identifies URLs with query parameters (injection points)
-
-- **API Endpoint Discovery**: REST APIs, GraphQL, versioned endpoints
-
-- **Sensitive File Detection**: Backups, configs, database dumps, source code
-
-
-
-### 🎯 Vulnerability Pattern Matching
-
-- **SQL Injection**: Detects potential SQLi parameters
-
-- **Cross-Site Scripting (XSS)**: Identifies XSS-prone parameters
-
-- **Local/Remote File Inclusion**: LFI/RFI vulnerable patterns
-
-- **Server-Side Request Forgery (SSRF)**: SSRF attack vectors
-
-- **Insecure Direct Object Reference (IDOR)**: IDOR vulnerable endpoints
-
-- **Open Redirect**: Open redirect vulnerabilities
-
-
-
-### 🚀 HTTP Status Intelligence
-
-- **200**: Alive and accessible URLs
-
-- **401**: Unauthorized (auth bypass opportunities)
-
-- **403**: Forbidden (potential bypasses)
-
-- **405**: Method not allowed (alternative HTTP methods)
-
-- **429**: Rate limiting detected
-
-- **500+**: Server errors (exploitation opportunities)
-
-
-### ⚡ Performance
-
-- **Concurrent Processing**: Async multi-threaded URL checking
-
-- **Fast Mode**: Static analysis without HTTP requests
-
-- **Progress Tracking**: Real-time progress updates
-
-- **Smart Deduplication**: Automatic URL normalization
-
-
-
 ## 📦 Installation
 
 
@@ -348,59 +267,7 @@ results/
 
 
 
-## 🎯 Bug Bounty Hunting Guide
 
-
-
-### Priority Testing Order
-
-
-
-1\. **🔑 tokens\_secrets.txt** - Quick Wins
-
-&nbsp;  - Look for exposed API keys, tokens, credentials
-
-&nbsp;  - Test immediately for authentication bypass
-
-
-
-2\. **⚠️ interesting\_codes.txt** - Access Control
-
-&nbsp;  - 403 Forbidden: Try path traversal, method bypass
-
-&nbsp;  - 401 Unauthorized: Test auth bypass techniques
-
-&nbsp;  - 405 Method Not Allowed: Try different HTTP methods
-
-
-
-3\. **💉 potential\_vulnerabilities/** - Injection Testing
-
-&nbsp;  - Start with `sqli.txt` for SQL injection
-
-&nbsp;  - Test `xss.txt` for cross-site scripting
-
-&nbsp;  - Check `ssrf.txt` for SSRF vulnerabilities
-
-
-
-4\. **📊 api\_endpoints.txt** - API Testing
-
-&nbsp;  - Test for broken authentication
-
-&nbsp;  - Check for excessive data exposure
-
-&nbsp;  - Test rate limiting and authorization
-
-
-
-5\. **🔍 parameters.txt** - General Testing
-
-&nbsp;  - Test all injection types
-
-&nbsp;  - Check for business logic flaws
-
-&nbsp;  - Test authorization on all parameters
 
 
 
@@ -715,32 +582,6 @@ class Config:
 
 
 
-### v2.0.0 (Current)
-
-- Complete Python rewrite
-
-- Async HTTP requests with aiohttp
-
-- 10x performance improvement
-
-- Cross-platform support
-
-- Better error handling
-
-- Real-time progress display
-
-
-
-### v1.0.0
-
-- Initial bash version
-
-- Basic URL checking and pattern detection
-
-- Concurrent processing with xargs/parallel
-
-
-
 ## 📝 License
 
 
@@ -757,18 +598,6 @@ This tool is for educational and ethical testing purposes only. Always obtain pr
 
 
 
-## 🙏 Acknowledgments
-
-
-
-- Inspired by the bug bounty community
-
-- Built for pentesters, by pentesters
-
-- Thanks to all contributors and users
-
-- Special thanks to the Python and bash communities
-
 
 
 ## 📧 Contact
@@ -777,7 +606,7 @@ This tool is for educational and ethical testing purposes only. Always obtain pr
 
 - GitHub Issues: \[Report bugs or request features](https://github.com/abhijithmotty/zort/issues)
 
-- Twitter: \[@yourhandle](https://x.com/primeaetheron)
+- Twitter: \[@primeaetheron](https://x.com/primeaetheron)
 
 
 
