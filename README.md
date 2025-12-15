@@ -164,50 +164,41 @@ zort urls.txt -t 100
 
 
 
-### Python Version
 
 
 
 ```
 
-zort <url\_file> \[options]
+# Basic scan (just identifies JS files, no analysis)
+python zort.py urls.txt
 
+# With JS analysis (downloads and scans content)
+python zort.py urls.txt --analyze-js
 
+# Full power scan
+python zort.py urls.txt -t 100 --analyze-js
 
-ARGUMENTS:
+# JS analysis only (skip other HTTP checks)
+python zort.py urls.txt --analyze-js --skip-check
+```
 
- url\_file          Text file containing URLs (one per line)
+## 💡 Example Output:
+```
+[!] Phase 3: JavaScript File Analysis
+[INFO] Analyzing 45 JavaScript files for secrets...
 
+[100%] Analyzed: 45/45 | Secrets Found: 127
 
+[✓] Found 127 potential secrets in 12 JS files!
 
-OPTIONS:
-
- -w, --wordlist    Optional external wordlist file
-
- -t, --threads     Number of concurrent requests (default: 50)
-
- -T, --timeout     Timeout per URL in seconds (default: 10)
-
- -s, --skip-check  Skip HTTP checks (static analysis only)
-
- -o, --output      Output directory (default: results)
-
- -h, --help        Show help message
-
- -v, --version     Show version
-
-
-
-EXAMPLES:
-
- zort urls.txt
-
- zort urls.txt -w keywords.txt -t 100 -T 5
-
- zort urls.txt --skip-check
-
- zort urls.txt -o custom\_output
-
+Results:
+  • api_keys          : 23
+  • endpoints         : 45
+  • jwt_tokens        : 8
+  • aws_keys          : 2
+  • github_tokens     : 1
+  • database_urls     : 3
+  • internal_urls     : 45
 ```
 
 
@@ -261,7 +252,21 @@ results/
 
 ├── summary\_report.txt               # Comprehensive analysis report
 
-└── zort.log                         # Detailed execution log
+├── zort.log                         # Detailed execution log
+
+├── js_files.txt                       # All JS files found
+
+└── js_analysis/                       # JS analysis results
+    ├── js_secrets_detailed.txt        # Full detailed report
+    ├── summary.json                   # JSON summary
+    ├── api_keys.txt                   # API keys found
+    ├── aws_keys.txt                   # AWS credentials
+    ├── github_tokens.txt              # GitHub tokens
+    ├── jwt_tokens.txt                 # JWT tokens
+    ├── private_keys.txt               # Private keys
+    ├── database_urls.txt              # DB connection strings
+    ├── passwords.txt                  # Passwords
+    └── endpoints.txt                  # Hardcoded endpoints
 
 ```
 
