@@ -109,6 +109,75 @@ class Config:
     API_PATTERNS = ['/v1', '/v2', '/v3', '/v4', '/api/', '/rest/', '/graphql', '/ws/', '/service/']
     
     INTERESTING_STATUS_CODES = [401, 403, 405, 429, 500, 501, 502, 503]
+    
+    # JavaScript file patterns
+    JS_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.json']
+    
+    # Sensitive data patterns to search in JS files
+    JS_SENSITIVE_PATTERNS = {
+        'api_keys': [
+            r'["\']?api[_-]?key["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+            r'["\']?apikey["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+            r'["\']?api[_-]?secret["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+        ],
+        'access_tokens': [
+            r'["\']?access[_-]?token["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-\.]{20,}["\']',
+            r'["\']?auth[_-]?token["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-\.]{20,}["\']',
+            r'bearer\s+[a-zA-Z0-9_\-\.]{20,}',
+        ],
+        'aws_keys': [
+            r'AKIA[0-9A-Z]{16}',
+            r'["\']?aws[_-]?access[_-]?key[_-]?id["\']?\s*[:=]\s*["\'][A-Z0-9]{20}["\']',
+            r'["\']?aws[_-]?secret[_-]?access[_-]?key["\']?\s*[:=]\s*["\'][A-Za-z0-9/+=]{40}["\']',
+        ],
+        'google_api': [
+            r'AIza[0-9A-Za-z_\-]{35}',
+            r'["\']?google[_-]?api[_-]?key["\']?\s*[:=]\s*["\'][A-Za-z0-9_\-]{35,}["\']',
+        ],
+        'github_tokens': [
+            r'gh[pousr]_[0-9a-zA-Z]{36}',
+            r'github_pat_[0-9a-zA-Z_]{82}',
+            r'["\']?github[_-]?token["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{40}["\']',
+        ],
+        'slack_tokens': [
+            r'xox[baprs]-[0-9a-zA-Z\-]{10,72}',
+            r'["\']?slack[_-]?token["\']?\s*[:=]\s*["\']xox[baprs]-[0-9a-zA-Z\-]{10,}["\']',
+        ],
+        'private_keys': [
+            r'-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----',
+            r'-----BEGIN OPENSSH PRIVATE KEY-----',
+            r'-----BEGIN PGP PRIVATE KEY BLOCK-----',
+        ],
+        'jwt_tokens': [
+            r'eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}',
+        ],
+        'database_urls': [
+            r'mongodb(\+srv)?://[^\s\'"]{10,}',
+            r'postgres(ql)?://[^\s\'"]{10,}',
+            r'mysql://[^\s\'"]{10,}',
+            r'redis://[^\s\'"]{10,}',
+        ],
+        'internal_urls': [
+            r'https?://(?:localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})[^\s\'"]*',
+            r'https?://[a-z0-9\-]+\.(?:local|internal|corp|dev|staging)[^\s\'"]*',
+        ],
+        'passwords': [
+            r'["\']?password["\']?\s*[:=]\s*["\'][^"\']{8,}["\']',
+            r'["\']?passwd["\']?\s*[:=]\s*["\'][^"\']{8,}["\']',
+            r'["\']?pwd["\']?\s*[:=]\s*["\'][^"\']{8,}["\']',
+        ],
+        'client_secrets': [
+            r'["\']?client[_-]?secret["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+            r'["\']?client[_-]?id["\']?\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+        ],
+        'encryption_keys': [
+            r'["\']?encryption[_-]?key["\']?\s*[:=]\s*["\'][a-zA-Z0-9+/=]{20,}["\']',
+            r'["\']?secret[_-]?key["\']?\s*[:=]\s*["\'][a-zA-Z0-9+/=]{20,}["\']',
+        ],
+        'endpoints': [
+            r'https?://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}/[^\s\'"<>]*',
+        ],
+    }
 
 class URLAnalyzer:
     """Main URL analysis class"""
@@ -125,12 +194,16 @@ class URLAnalyzer:
             'api_endpoints': set(),
             'vulnerabilities': defaultdict(set),
             'keywords': defaultdict(set),
+            'js_files': set(),
+            'js_secrets': defaultdict(list),
         }
         self.stats = {
             'total_urls': 0,
             'checked': 0,
             'alive': 0,
             'interesting': 0,
+            'js_files': 0,
+            'js_secrets_found': 0,
         }
         
         # Compile regex patterns
@@ -145,6 +218,7 @@ class URLAnalyzer:
         self.output_base.mkdir(exist_ok=True)
         (self.output_base / "potential_vulnerabilities").mkdir(exist_ok=True)
         (self.output_base / "keywords").mkdir(exist_ok=True)
+        (self.output_base / "js_analysis").mkdir(exist_ok=True)
         
     def load_keywords(self):
         """Load keywords from config and optional wordlist"""
@@ -210,6 +284,11 @@ class URLAnalyzer:
         """Check if URL matches API patterns"""
         return any(pattern in url for pattern in Config.API_PATTERNS)
     
+    def is_js_file(self, url):
+        """Check if URL is a JavaScript file"""
+        url_lower = url.lower()
+        return any(url_lower.endswith(ext) for ext in Config.JS_EXTENSIONS)
+    
     def analyze_vulnerability_patterns(self, url):
         """Analyze URL for vulnerability patterns"""
         vulnerabilities = []
@@ -222,6 +301,10 @@ class URLAnalyzer:
     
     def analyze_url_static(self, url):
         """Perform static analysis on URL without HTTP request"""
+        # Check for JavaScript files
+        if self.is_js_file(url):
+            self.results['js_files'].add(url)
+        
         # Check for parameters
         if self.has_parameters(url):
             self.results['parameters'].add(url)
@@ -264,6 +347,56 @@ class URLAnalyzer:
         except:
             return url, 0
     
+    async def fetch_js_content(self, session, url):
+        """Fetch JavaScript file content"""
+        try:
+            async with session.get(
+                url,
+                timeout=aiohttp.ClientTimeout(total=self.args.timeout * 2),  # Longer timeout for downloading
+                allow_redirects=True,
+                ssl=False
+            ) as response:
+                if response.status == 200:
+                    content = await response.text()
+                    return url, content
+                return url, None
+        except asyncio.TimeoutError:
+            self.log(f"Timeout fetching JS: {url}", level="WARN")
+            return url, None
+        except Exception as e:
+            self.log(f"Error fetching JS {url}: {str(e)}", level="ERROR")
+            return url, None
+    
+    def analyze_js_content(self, url, content):
+        """Analyze JavaScript content for sensitive data"""
+        if not content:
+            return
+        
+        findings = []
+        
+        # Search for each pattern category
+        for category, patterns in Config.JS_SENSITIVE_PATTERNS.items():
+            for pattern in patterns:
+                matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
+                for match in matches:
+                    # Get context (surrounding lines)
+                    start = max(0, match.start() - 100)
+                    end = min(len(content), match.end() + 100)
+                    context = content[start:end].replace('\n', ' ').strip()
+                    
+                    finding = {
+                        'category': category,
+                        'match': match.group(0),
+                        'context': context[:200],  # Limit context length
+                        'pattern': pattern[:50],  # Show which pattern matched
+                    }
+                    findings.append(finding)
+                    self.stats['js_secrets_found'] += 1
+        
+        if findings:
+            self.results['js_secrets'][url] = findings
+            self.log(f"Found {len(findings)} secrets in {url}", level="FOUND")
+    
     async def http_check_urls(self, urls):
         """Perform HTTP checks on URLs with concurrency control"""
         self.print_colored("Phase 2: HTTP Status Code Analysis", Colors.MAGENTA, "[!]")
@@ -301,6 +434,49 @@ class URLAnalyzer:
                           f"{Colors.YELLOW}Interesting: {self.stats['interesting']}{Colors.NC}", end='', flush=True)
         
         print("\n")
+    
+    async def analyze_js_files(self):
+        """Download and analyze JavaScript files"""
+        if not self.results['js_files']:
+            return
+        
+        self.print_colored("Phase 3: JavaScript File Analysis", Colors.MAGENTA, "[!]")
+        self.print_colored(f"Analyzing {len(self.results['js_files'])} JavaScript files for secrets...", Colors.BLUE, "[INFO]")
+        
+        if not self.args.analyze_js:
+            self.print_colored("JavaScript analysis disabled. Use --analyze-js to enable.", Colors.YELLOW, "[WARN]")
+            print()
+            return
+        
+        print()
+        
+        connector = aiohttp.TCPConnector(limit=self.args.threads // 2, ssl=False)  # Less concurrency for downloads
+        timeout = aiohttp.ClientTimeout(total=self.args.timeout * 2)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            tasks = [self.fetch_js_content(session, url) for url in self.results['js_files']]
+            
+            # Process results as they complete
+            for i, task in enumerate(asyncio.as_completed(tasks), 1):
+                url, content = await task
+                
+                if content:
+                    self.analyze_js_content(url, content)
+                
+                # Progress update
+                if i % 10 == 0 or i == len(self.results['js_files']):
+                    progress = int((i / len(self.results['js_files'])) * 100)
+                    print(f"\r{Colors.BLUE}[{progress:3d}%]{Colors.NC} Analyzed: {i}/{len(self.results['js_files'])} | "
+                          f"{Colors.GREEN}Secrets Found: {self.stats['js_secrets_found']}{Colors.NC}", end='', flush=True)
+        
+        print("\n")
+        
+        if self.stats['js_secrets_found'] > 0:
+            self.print_colored(f"Found {self.stats['js_secrets_found']} potential secrets in {len(self.results['js_secrets'])} JS files!", 
+                             Colors.GREEN, "[✓]")
+        else:
+            self.print_colored("No secrets found in JavaScript files", Colors.BLUE, "[INFO]")
+        print()
     
     def save_results(self):
         """Save all results to files"""
@@ -340,6 +516,66 @@ class URLAnalyzer:
             with open(api_file, 'w') as f:
                 for url in sorted(self.results['api_endpoints']):
                     f.write(f"{url}\n")
+        
+        # Save JS files
+        if self.results['js_files']:
+            js_file = self.output_base / "js_files.txt"
+            with open(js_file, 'w') as f:
+                for url in sorted(self.results['js_files']):
+                    f.write(f"{url}\n")
+        
+        # Save JS analysis results
+        if self.results['js_secrets']:
+            js_dir = self.output_base / "js_analysis"
+            
+            # Save detailed findings
+            js_secrets_file = js_dir / "js_secrets_detailed.txt"
+            with open(js_secrets_file, 'w') as f:
+                f.write("=" * 80 + "\n")
+                f.write("JavaScript Secrets Analysis - Detailed Report\n")
+                f.write("=" * 80 + "\n\n")
+                
+                for url, findings in sorted(self.results['js_secrets'].items()):
+                    f.write(f"\n{'=' * 80}\n")
+                    f.write(f"File: {url}\n")
+                    f.write(f"Findings: {len(findings)}\n")
+                    f.write(f"{'=' * 80}\n\n")
+                    
+                    for idx, finding in enumerate(findings, 1):
+                        f.write(f"[{idx}] Category: {finding['category'].upper()}\n")
+                        f.write(f"    Match: {finding['match']}\n")
+                        f.write(f"    Context: ...{finding['context']}...\n")
+                        f.write(f"    Pattern: {finding['pattern']}\n\n")
+            
+            # Save categorized findings
+            categorized = defaultdict(list)
+            for url, findings in self.results['js_secrets'].items():
+                for finding in findings:
+                    categorized[finding['category']].append({
+                        'url': url,
+                        'match': finding['match']
+                    })
+            
+            for category, items in categorized.items():
+                category_file = js_dir / f"{category}.txt"
+                with open(category_file, 'w') as f:
+                    f.write(f"# {category.upper()} - Found in JavaScript Files\n")
+                    f.write(f"# Total: {len(items)} findings\n\n")
+                    for item in items:
+                        f.write(f"{item['url']}\n")
+                        f.write(f"  └─> {item['match']}\n\n")
+            
+            # Save summary
+            js_summary = js_dir / "summary.json"
+            summary_data = {
+                'total_js_files': len(self.results['js_files']),
+                'files_with_secrets': len(self.results['js_secrets']),
+                'total_secrets': self.stats['js_secrets_found'],
+                'by_category': {cat: len(items) for cat, items in categorized.items()},
+                'files': list(self.results['js_secrets'].keys())
+            }
+            with open(js_summary, 'w') as f:
+                json.dump(summary_data, f, indent=2)
         
         # Save vulnerabilities
         vuln_dir = self.output_base / "potential_vulnerabilities"
@@ -427,6 +663,19 @@ TOP FINDINGS
             summary += "Sample interesting status codes:\n"
             for entry in self.results['interesting_codes'][:5]:
                 summary += f"  • {entry}\n"
+            summary += "\n"
+        
+        # Sample JS secrets
+        if self.results['js_secrets']:
+            summary += "Sample JavaScript secrets found:\n"
+            count = 0
+            for url, findings in list(self.results['js_secrets'].items())[:3]:
+                summary += f"  • {url}\n"
+                for finding in findings[:2]:  # Show first 2 findings per file
+                    summary += f"    └─> [{finding['category']}] {finding['match'][:60]}...\n"
+                count += 1
+                if count >= 3:
+                    break
             summary += "\n"
         
         summary += f"""OUTPUT FILES
@@ -518,8 +767,12 @@ TOP FINDINGS
             self.print_colored("Skipping HTTP checks (--skip-check enabled)", Colors.BLUE, "[INFO]")
             print()
         
-        # Phase 3: Save Results
-        self.print_colored("Phase 3: Saving Results", Colors.MAGENTA, "[!]")
+        # Phase 3: JavaScript Analysis
+        if self.results['js_files'] and not self.args.skip_check:
+            await self.analyze_js_files()
+        
+        # Phase 4: Save Results
+        self.print_colored("Phase 4: Saving Results", Colors.MAGENTA, "[!]")
         self.save_results()
         print()
         
@@ -537,9 +790,10 @@ TOP FINDINGS
         self.print_colored("Quick Start Guide:", Colors.MAGENTA, "[!]")
         print("  1. Check tokens_secrets.txt for exposed credentials")
         print("  2. Review interesting_codes.txt for 401/403 (potential bypasses)")
-        print("  3. Test parameters.txt for injection vulnerabilities")
-        print("  4. Explore api_endpoints.txt for API testing")
-        print("  5. Review potential_vulnerabilities/ by attack type")
+        print("  3. 🔥 Check js_analysis/ for hardcoded secrets in JavaScript files")
+        print("  4. Test parameters.txt for injection vulnerabilities")
+        print("  5. Explore api_endpoints.txt for API testing")
+        print("  6. Review potential_vulnerabilities/ by attack type")
         print()
 
 def main():
@@ -560,6 +814,7 @@ Examples:
     parser.add_argument('-t', '--threads', type=int, default=50, help='Number of concurrent requests (default: 50)')
     parser.add_argument('-T', '--timeout', type=int, default=10, help='Timeout per URL in seconds (default: 10)')
     parser.add_argument('-s', '--skip-check', action='store_true', help='Skip HTTP checks (static analysis only)')
+    parser.add_argument('-j', '--analyze-js', action='store_true', help='Download and analyze JavaScript files for secrets (slower)')
     parser.add_argument('-o', '--output', default='results', help='Output directory (default: results)')
     parser.add_argument('-v', '--version', action='version', version='ZORT 2.0')
     
