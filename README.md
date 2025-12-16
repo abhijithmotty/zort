@@ -11,7 +11,7 @@
 
 ```bash
 # Install
-git clone https://github.com/yourusername/zort.git
+git clone https://github.com/abhijithmotty/zort.git
 cd zort
 pip install -r requirements.txt
 
