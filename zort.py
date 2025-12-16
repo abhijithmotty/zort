@@ -196,6 +196,8 @@ class URLAnalyzer:
             'keywords': defaultdict(set),
             'js_files': set(),
             'js_secrets': defaultdict(list),
+            'js_analyzed': set(),  # Track all analyzed JS files
+            'js_download_failed': set(),  # Track failed downloads
         }
         self.stats = {
             'total_urls': 0,
@@ -352,14 +354,27 @@ class URLAnalyzer:
         try:
             async with session.get(
                 url,
-                timeout=aiohttp.ClientTimeout(total=self.args.timeout * 2),  # Longer timeout for downloading
+                timeout=aiohttp.ClientTimeout(total=self.args.timeout * 3),
                 allow_redirects=True,
                 ssl=False
             ) as response:
                 if response.status == 200:
-                    content = await response.text()
-                    return url, content
-                return url, None
+                    # Check content type
+                    content_type = response.headers.get('content-type', '').lower()
+                    
+                    # Only process if it's actually JavaScript/JSON
+                    if any(t in content_type for t in ['javascript', 'json', 'text/plain', 'application/octet-stream']):
+                        try:
+                            content = await response.text(errors='ignore')
+                            return url, content
+                        except:
+                            return url, None
+                    else:
+                        self.log(f"Skipping {url} - wrong content type: {content_type}", level="WARN")
+                        return url, None
+                else:
+                    self.log(f"Failed to fetch {url} - Status: {response.status}", level="WARN")
+                    return url, None
         except asyncio.TimeoutError:
             self.log(f"Timeout fetching JS: {url}", level="WARN")
             return url, None
@@ -438,44 +453,102 @@ class URLAnalyzer:
     async def analyze_js_files(self):
         """Download and analyze JavaScript files"""
         if not self.results['js_files']:
+            self.print_colored("No JavaScript files found to analyze", Colors.YELLOW, "[WARN]")
             return
         
         self.print_colored("Phase 3: JavaScript File Analysis", Colors.MAGENTA, "[!]")
-        self.print_colored(f"Analyzing {len(self.results['js_files'])} JavaScript files for secrets...", Colors.BLUE, "[INFO]")
+        
+        js_count = len(self.results['js_files'])
+        self.print_colored(f"Found {js_count} JavaScript files", Colors.BLUE, "[INFO]")
         
         if not self.args.analyze_js:
-            self.print_colored("JavaScript analysis disabled. Use --analyze-js to enable.", Colors.YELLOW, "[WARN]")
+            self.print_colored("JavaScript content analysis disabled. Use --analyze-js to enable.", Colors.YELLOW, "[WARN]")
+            self.print_colored(f"JS files list saved to: {self.output_base}/js_files.txt", Colors.BLUE, "[INFO]")
             print()
             return
         
+        # Ask for confirmation if many files
+        if js_count > 50:
+            print()
+            self.print_colored(f"⚠️  Warning: {js_count} JavaScript files found!", Colors.YELLOW, "[!]")
+            print(f"   This will download and analyze {js_count} files.")
+            print(f"   Estimated time: ~{js_count * 2} seconds")
+            print()
+            
+            try:
+                response = input(f"{Colors.CYAN}Continue with JS analysis? [y/N]: {Colors.NC}").strip().lower()
+                if response not in ['y', 'yes']:
+                    self.print_colored("Skipping JS analysis. Files list saved to js_files.txt", Colors.YELLOW, "[INFO]")
+                    print()
+                    return
+            except KeyboardInterrupt:
+                print()
+                self.print_colored("Skipping JS analysis", Colors.YELLOW, "[INFO]")
+                print()
+                return
+        
+        print()
+        self.print_colored(f"Downloading and analyzing {js_count} JavaScript files...", Colors.BLUE, "[INFO]")
+        self.print_colored("This may take a while depending on file sizes...", Colors.BLUE, "[INFO]")
         print()
         
-        connector = aiohttp.TCPConnector(limit=self.args.threads // 2, ssl=False)  # Less concurrency for downloads
-        timeout = aiohttp.ClientTimeout(total=self.args.timeout * 2)
+        connector = aiohttp.TCPConnector(limit=min(self.args.threads // 2, 10), ssl=False)
+        timeout = aiohttp.ClientTimeout(total=self.args.timeout * 3)
         
         async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             tasks = [self.fetch_js_content(session, url) for url in self.results['js_files']]
             
             # Process results as they complete
+            downloaded = 0
+            failed = 0
+            
             for i, task in enumerate(asyncio.as_completed(tasks), 1):
                 url, content = await task
                 
+                self.results['js_analyzed'].add(url)
+                
                 if content:
+                    downloaded += 1
                     self.analyze_js_content(url, content)
+                else:
+                    failed += 1
+                    self.results['js_download_failed'].add(url)
                 
                 # Progress update
-                if i % 10 == 0 or i == len(self.results['js_files']):
+                if i % 5 == 0 or i == len(self.results['js_files']):
                     progress = int((i / len(self.results['js_files'])) * 100)
                     print(f"\r{Colors.BLUE}[{progress:3d}%]{Colors.NC} Analyzed: {i}/{len(self.results['js_files'])} | "
-                          f"{Colors.GREEN}Secrets Found: {self.stats['js_secrets_found']}{Colors.NC}", end='', flush=True)
+                          f"{Colors.GREEN}Downloaded: {downloaded}{Colors.NC} | "
+                          f"{Colors.RED}Failed: {failed}{Colors.NC} | "
+                          f"{Colors.YELLOW}Secrets: {self.stats['js_secrets_found']}{Colors.NC}", end='', flush=True)
         
         print("\n")
         
+        # Summary
+        files_with_secrets = len(self.results['js_secrets'])
+        clean_files = downloaded - files_with_secrets
+        
         if self.stats['js_secrets_found'] > 0:
-            self.print_colored(f"Found {self.stats['js_secrets_found']} potential secrets in {len(self.results['js_secrets'])} JS files!", 
+            self.print_colored(f"🔥 Found {self.stats['js_secrets_found']} potential secrets in {files_with_secrets} JS files!", 
                              Colors.GREEN, "[✓]")
+            self.print_colored(f"   Clean files (no secrets): {clean_files}", Colors.BLUE, "[INFO]")
         else:
-            self.print_colored("No secrets found in JavaScript files", Colors.BLUE, "[INFO]")
+            self.print_colored(f"No secrets found in {downloaded} JavaScript files", Colors.BLUE, "[INFO]")
+        
+        if failed > 0:
+            self.print_colored(f"Failed to download {failed} JS files (timeout/error)", Colors.YELLOW, "[WARN]")
+        
+        # Ask about cleanup
+        if clean_files > 0 and files_with_secrets > 0:
+            print()
+            try:
+                response = input(f"{Colors.CYAN}Remove clean JS files from downloaded list? [y/N]: {Colors.NC}").strip().lower()
+                if response in ['y', 'yes']:
+                    # This is just informational - we keep all in output but mark them
+                    self.print_colored("Clean files will be marked in output (check clean_files.txt)", Colors.GREEN, "[✓]")
+            except KeyboardInterrupt:
+                print()
+        
         print()
     
     def save_results(self):
@@ -517,16 +590,44 @@ class URLAnalyzer:
                 for url in sorted(self.results['api_endpoints']):
                     f.write(f"{url}\n")
         
-        # Save JS files
+        # ALWAYS save JS files list (even if no secrets found)
         if self.results['js_files']:
             js_file = self.output_base / "js_files.txt"
             with open(js_file, 'w') as f:
+                f.write(f"# JavaScript Files Found: {len(self.results['js_files'])}\n")
+                f.write(f"# Use --analyze-js flag to scan these files for secrets\n\n")
                 for url in sorted(self.results['js_files']):
                     f.write(f"{url}\n")
         
-        # Save JS analysis results
+        # Save JS analysis results (only if analysis was performed)
         if self.results['js_secrets']:
             js_dir = self.output_base / "js_analysis"
+            
+            # Save all analyzed JS files (with and without secrets)
+            js_analyzed_file = js_dir / "all_analyzed_files.txt"
+            with open(js_analyzed_file, 'w') as f:
+                f.write(f"# All JavaScript Files Analyzed: {len(self.results.get('js_analyzed', set()))}\n\n")
+                for url in sorted(self.results.get('js_analyzed', set())):
+                    has_secrets = url in self.results['js_secrets']
+                    marker = "[SECRETS FOUND]" if has_secrets else "[CLEAN]"
+                    f.write(f"{marker} {url}\n")
+            
+            # Save files with secrets
+            js_with_secrets = js_dir / "files_with_secrets.txt"
+            with open(js_with_secrets, 'w') as f:
+                f.write(f"# JavaScript Files Containing Secrets: {len(self.results['js_secrets'])}\n\n")
+                for url in sorted(self.results['js_secrets'].keys()):
+                    secret_count = len(self.results['js_secrets'][url])
+                    f.write(f"{url} ({secret_count} secrets)\n")
+            
+            # Save clean files (no secrets)
+            clean_files = self.results.get('js_analyzed', set()) - set(self.results['js_secrets'].keys())
+            if clean_files:
+                js_clean_file = js_dir / "clean_files.txt"
+                with open(js_clean_file, 'w') as f:
+                    f.write(f"# JavaScript Files Without Secrets: {len(clean_files)}\n\n")
+                    for url in sorted(clean_files):
+                        f.write(f"{url}\n")
             
             # Save detailed findings
             js_secrets_file = js_dir / "js_secrets_detailed.txt"
@@ -568,11 +669,13 @@ class URLAnalyzer:
             # Save summary
             js_summary = js_dir / "summary.json"
             summary_data = {
-                'total_js_files': len(self.results['js_files']),
+                'total_js_files_found': len(self.results['js_files']),
+                'total_js_files_analyzed': len(self.results.get('js_analyzed', set())),
                 'files_with_secrets': len(self.results['js_secrets']),
+                'clean_files': len(clean_files),
                 'total_secrets': self.stats['js_secrets_found'],
                 'by_category': {cat: len(items) for cat, items in categorized.items()},
-                'files': list(self.results['js_secrets'].keys())
+                'files_with_secrets_list': list(self.results['js_secrets'].keys())
             }
             with open(js_summary, 'w') as f:
                 json.dump(summary_data, f, indent=2)
@@ -758,6 +861,13 @@ TOP FINDINGS
         print(f"  • URLs with parameters: {len(self.results['parameters'])}")
         print(f"  • URLs with tokens/secrets: {len(self.results['tokens_secrets'])}")
         print(f"  • API endpoints: {len(self.results['api_endpoints'])}")
+        print(f"  • JavaScript files: {len(self.results['js_files'])}")
+        
+        if self.results['js_files'] and not self.args.analyze_js:
+            print()
+            self.print_colored(f"💡 Tip: Use --analyze-js to scan {len(self.results['js_files'])} JS files for secrets!", 
+                             Colors.CYAN, "[TIP]")
+        
         print()
         
         # Phase 2: HTTP Checks
