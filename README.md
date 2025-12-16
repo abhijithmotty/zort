@@ -58,7 +58,7 @@ cat results/interesting_codes.txt       # 401/403 bypasses
 cat results/potential_vulnerabilities/sqli.txt
 ```
 
----
+
 
 ## 📂 Output
 
@@ -84,7 +84,7 @@ results/
 └── keywords/                 # Categorized by keyword
 ```
 
----
+
 
 
 ## Options
@@ -131,10 +131,10 @@ cat results/tokens_secrets.txt | httpx -mc 200
 - Python 3.7+
 - aiohttp (`pip install aiohttp`)
 
----
+
 
 ## 📝 License
 
 MIT License - See [LICENSE](LICENSE)
 
----
+
