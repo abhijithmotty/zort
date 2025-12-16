@@ -821,7 +821,7 @@ TOP FINDINGS
         # Header
         print()
         print("╔═══════════════════════════════════════════════════════════════╗")
-        print("║          ZORT - Advanced URL Analysis Tool                    ║")
+        print("║              ZORT - URL Analysis Tool                         ║")
         print("║          Bug Bounty & Pentesting Edition                      ║")
         print("╚═══════════════════════════════════════════════════════════════╝")
         print()
