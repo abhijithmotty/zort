@@ -389,24 +389,41 @@ class URLAnalyzer:
         
         findings = []
         
+        # Split content into lines for line number tracking
+        lines = content.split('\n')
+        
         # Search for each pattern category
         for category, patterns in Config.JS_SENSITIVE_PATTERNS.items():
             for pattern in patterns:
-                matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
-                for match in matches:
-                    # Get context (surrounding lines)
-                    start = max(0, match.start() - 100)
-                    end = min(len(content), match.end() + 100)
-                    context = content[start:end].replace('\n', ' ').strip()
-                    
-                    finding = {
-                        'category': category,
-                        'match': match.group(0),
-                        'context': context[:200],  # Limit context length
-                        'pattern': pattern[:50],  # Show which pattern matched
-                    }
-                    findings.append(finding)
-                    self.stats['js_secrets_found'] += 1
+                # Search line by line to get accurate line numbers
+                for line_num, line in enumerate(lines, 1):
+                    matches = re.finditer(pattern, line, re.IGNORECASE)
+                    for match in matches:
+                        # Get surrounding lines for context (3 lines before and after)
+                        start_line = max(0, line_num - 3)
+                        end_line = min(len(lines), line_num + 3)
+                        context_lines = lines[start_line:end_line]
+                        
+                        # Highlight the matched line
+                        highlighted_context = []
+                        for i, ctx_line in enumerate(context_lines):
+                            actual_line_num = start_line + i + 1
+                            if actual_line_num == line_num:
+                                highlighted_context.append(f">>> {actual_line_num:4d} | {ctx_line}")
+                            else:
+                                highlighted_context.append(f"    {actual_line_num:4d} | {ctx_line}")
+                        
+                        finding = {
+                            'category': category,
+                            'match': match.group(0),
+                            'line_number': line_num,
+                            'column': match.start() + 1,
+                            'line_content': line.strip(),
+                            'context': '\n'.join(highlighted_context),
+                            'pattern': pattern[:80],
+                        }
+                        findings.append(finding)
+                        self.stats['js_secrets_found'] += 1
         
         if findings:
             self.results['js_secrets'][url] = findings
@@ -629,24 +646,70 @@ class URLAnalyzer:
                     for url in sorted(clean_files):
                         f.write(f"{url}\n")
             
-            # Save detailed findings
+            # Save detailed findings with line numbers
             js_secrets_file = js_dir / "js_secrets_detailed.txt"
             with open(js_secrets_file, 'w') as f:
-                f.write("=" * 80 + "\n")
-                f.write("JavaScript Secrets Analysis - Detailed Report\n")
-                f.write("=" * 80 + "\n\n")
+                f.write("=" * 100 + "\n")
+                f.write("JavaScript Secrets Analysis - Detailed Report with Line Numbers\n")
+                f.write("=" * 100 + "\n\n")
                 
                 for url, findings in sorted(self.results['js_secrets'].items()):
-                    f.write(f"\n{'=' * 80}\n")
-                    f.write(f"File: {url}\n")
-                    f.write(f"Findings: {len(findings)}\n")
-                    f.write(f"{'=' * 80}\n\n")
+                    f.write(f"\n{'=' * 100}\n")
+                    f.write(f"📄 File: {url}\n")
+                    f.write(f"🔍 Total Findings: {len(findings)}\n")
+                    f.write(f"{'=' * 100}\n\n")
                     
-                    for idx, finding in enumerate(findings, 1):
-                        f.write(f"[{idx}] Category: {finding['category'].upper()}\n")
-                        f.write(f"    Match: {finding['match']}\n")
-                        f.write(f"    Context: ...{finding['context']}...\n")
-                        f.write(f"    Pattern: {finding['pattern']}\n\n")
+                    # Group findings by category for better organization
+                    by_category = defaultdict(list)
+                    for finding in findings:
+                        by_category[finding['category']].append(finding)
+                    
+                    for category, cat_findings in sorted(by_category.items()):
+                        f.write(f"\n🔐 Category: {category.upper()} ({len(cat_findings)} findings)\n")
+                        f.write(f"{'-' * 100}\n\n")
+                        
+                        for idx, finding in enumerate(cat_findings, 1):
+                            f.write(f"[Finding #{idx}]\n")
+                            f.write(f"  📍 Location: Line {finding['line_number']}, Column {finding['column']}\n")
+                            f.write(f"  🎯 Match: {finding['match']}\n")
+                            f.write(f"  📝 Pattern: {finding['pattern']}\n\n")
+                            f.write(f"  📋 Code Context:\n")
+                            f.write(f"  {'-' * 96}\n")
+                            for line in finding['context'].split('\n'):
+                                f.write(f"  {line}\n")
+                            f.write(f"  {'-' * 96}\n\n")
+            
+            # Save line-by-line summary (easier to grep/search)
+            js_line_summary = js_dir / "secrets_by_line.txt"
+            with open(js_line_summary, 'w') as f:
+                f.write("# JavaScript Secrets - Line-by-Line Summary\n")
+                f.write("# Format: [CATEGORY] File:Line:Column | Match\n\n")
+                
+                for url, findings in sorted(self.results['js_secrets'].items()):
+                    for finding in sorted(findings, key=lambda x: x['line_number']):
+                        category = finding['category'].upper()
+                        line_num = finding['line_number']
+                        col = finding['column']
+                        match = finding['match'][:80]  # Truncate long matches
+                        
+                        f.write(f"[{category:15s}] {url}:{line_num}:{col}\n")
+                        f.write(f"                  └─> {match}\n\n")
+            
+            # Save per-file detailed breakdown
+            js_per_file = js_dir / "secrets_per_file.txt"
+            with open(js_per_file, 'w') as f:
+                f.write("=" * 100 + "\n")
+                f.write("JavaScript Secrets - Per File Breakdown\n")
+                f.write("=" * 100 + "\n\n")
+                
+                for url, findings in sorted(self.results['js_secrets'].items()):
+                    f.write(f"\n📄 {url}\n")
+                    f.write(f"   Secrets: {len(findings)}\n\n")
+                    
+                    # Sort by line number
+                    for finding in sorted(findings, key=lambda x: x['line_number']):
+                        f.write(f"   Line {finding['line_number']:4d} | [{finding['category']:12s}] {finding['match'][:70]}\n")
+                    f.write(f"\n{'-' * 100}\n")
             
             # Save categorized findings
             categorized = defaultdict(list)
@@ -654,7 +717,9 @@ class URLAnalyzer:
                 for finding in findings:
                     categorized[finding['category']].append({
                         'url': url,
-                        'match': finding['match']
+                        'match': finding['match'],
+                        'line_number': finding['line_number'],
+                        'column': finding['column']
                     })
             
             for category, items in categorized.items():
@@ -663,7 +728,7 @@ class URLAnalyzer:
                     f.write(f"# {category.upper()} - Found in JavaScript Files\n")
                     f.write(f"# Total: {len(items)} findings\n\n")
                     for item in items:
-                        f.write(f"{item['url']}\n")
+                        f.write(f"{item['url']}:{item.get('line_number', '?')}:{item.get('column', '?')}\n")
                         f.write(f"  └─> {item['match']}\n\n")
             
             # Save summary
@@ -821,7 +886,7 @@ TOP FINDINGS
         # Header
         print()
         print("╔═══════════════════════════════════════════════════════════════╗")
-        print("║              ZORT - URL Analysis Tool                         ║")
+        print("║          ZORT - Advanced URL Analysis Tool                    ║")
         print("║          Bug Bounty & Pentesting Edition                      ║")
         print("╚═══════════════════════════════════════════════════════════════╝")
         print()
