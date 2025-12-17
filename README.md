@@ -71,11 +71,13 @@ results/
 ├── parameters.txt            # URLs with parameters (injection points)
 ├── api_endpoints.txt         # API endpoints
 ├── js_analysis/              # JavaScript secrets (with --analyze-js)
-│   ├── files_with_secrets.txt
-│   ├── api_keys.txt
-│   ├── aws_keys.txt
-│   ├── jwt_tokens.txt
-│   └── js_secrets_detailed.txt
+|    ├── js_secrets_detailed.txt      # Full report with code context
+|    ├── secrets_by_line.txt          # Quick grep-friendly format
+|    ├── secrets_per_file.txt         # Organized by file
+|    ├── all_analyzed_files.txt       # All files (with/without secrets)
+|    ├── files_with_secrets.txt       # Only files with secrets
+|    ├── clean_files.txt              # Files without secrets
+|    └── summary.json                 # JSON summary
 ├── potential_vulnerabilities/
 │   ├── sqli.txt
 │   ├── xss.txt
